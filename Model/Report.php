@@ -5,6 +5,11 @@ namespace FL\ReportsBundle\Model;
 class Report implements ReportInterface
 {
     /**
+     * @var int
+     */
+    protected $id;
+
+    /**
      * @var string
      */
     protected $reportName = '';
@@ -35,7 +40,15 @@ class Report implements ReportInterface
     protected $sortColumns = [];
 
     /**
-     * @return string
+     * {@inheritdoc}
+     */
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function getReportName(): string
     {
@@ -43,8 +56,7 @@ class Report implements ReportInterface
     }
 
     /**
-     * @param string $reportName
-     * @return ReportInterface
+     * {@inheritdoc}
      */
     public function setReportName(string $reportName): ReportInterface
     {
@@ -54,7 +66,7 @@ class Report implements ReportInterface
     }
 
     /**
-     * @return string
+     * {@inheritdoc}
      */
     public function getReportBuilderId(): string
     {
@@ -62,8 +74,7 @@ class Report implements ReportInterface
     }
 
     /**
-     * @param string $reportBuilderId
-     * @return ReportInterface
+     * {@inheritdoc}
      */
     public function setReportBuilderId(string $reportBuilderId): ReportInterface
     {
@@ -73,7 +84,7 @@ class Report implements ReportInterface
     }
 
     /**
-     * @return string
+     * {@inheritdoc}
      */
     public function getReportBuilderHumanReadableName(): string
     {
@@ -81,8 +92,7 @@ class Report implements ReportInterface
     }
 
     /**
-     * @param string $reportBuilderHumanReadableName
-     * @return ReportInterface
+     * {@inheritdoc}
      */
     public function setReportBuilderHumanReadableName(string $reportBuilderHumanReadableName): ReportInterface
     {
@@ -92,7 +102,7 @@ class Report implements ReportInterface
     }
 
     /**
-     * @return string
+     * {@inheritdoc}
      */
     public function getRulesJsonString(): string
     {
@@ -100,8 +110,7 @@ class Report implements ReportInterface
     }
 
     /**
-     * @param string $rulesJsonString
-     * @return ReportInterface
+     * {@inheritdoc}
      */
     public function setRulesJsonString(string $rulesJsonString): ReportInterface
     {
@@ -111,7 +120,7 @@ class Report implements ReportInterface
     }
 
     /**
-     * @return string
+     * {@inheritdoc}
      */
     public function getColumnsAsJsonArray(): string
     {
@@ -123,7 +132,7 @@ class Report implements ReportInterface
     }
 
     /**
-     * @return string[]
+     * {@inheritdoc}
      */
     public function getColumns(): array
     {
@@ -131,8 +140,7 @@ class Report implements ReportInterface
     }
 
     /**
-     * @param string $column
-     * @return ReportInterface
+     * {@inheritdoc}
      */
     public function addColumn(string $column): ReportInterface
     {
@@ -142,8 +150,7 @@ class Report implements ReportInterface
     }
 
     /**
-     * @param string $column
-     * @return ReportInterface
+     * {@inheritdoc}
      */
     public function removeColumn(string $column): ReportInterface
     {
@@ -155,7 +162,7 @@ class Report implements ReportInterface
     }
 
     /**
-     * @return ReportInterface
+     * {@inheritdoc}
      */
     public function clearColumns() : ReportInterface
     {
@@ -165,7 +172,7 @@ class Report implements ReportInterface
     }
 
     /**
-     * @return string
+     * {@inheritdoc}
      */
     public function getSortColumnsAsJsonObject(): string
     {
@@ -181,7 +188,7 @@ class Report implements ReportInterface
     }
 
     /**
-     * @return string[]
+     * {@inheritdoc}
      */
     public function getSortColumns(): array
     {
@@ -189,10 +196,7 @@ class Report implements ReportInterface
     }
 
     /**
-     * @param string $sortColumn
-     * @param string $order
-     *
-     * @return ReportInterface
+     * {@inheritdoc}
      */
     public function addSortColumn(string $sortColumn, string $order): ReportInterface
     {
@@ -205,8 +209,7 @@ class Report implements ReportInterface
     }
 
     /**
-     * @param string $sortColumn
-     * @return ReportInterface
+     * {@inheritdoc}
      */
     public function removeSortColumn(string $sortColumn): ReportInterface
     {
@@ -218,7 +221,7 @@ class Report implements ReportInterface
     }
 
     /**
-     * @return ReportInterface
+     * {@inheritdoc}
      */
     public function clearSortColumns(): ReportInterface
     {

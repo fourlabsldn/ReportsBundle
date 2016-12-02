@@ -2,10 +2,18 @@
 
 namespace FL\ReportsBundle\Storage;
 
+use FL\QBJSParser\Parsed\AbstractParsedRuleGroup;
 use FL\ReportsBundle\Model\ReportInterface;
 
 interface ReportsStorageInterface
 {
+    /**
+     * @param AbstractParsedRuleGroup $parsedRuleGroup
+     *
+     * @return ReportInterface[]
+     */
+    public function findByParsedRuleGroup(AbstractParsedRuleGroup $parsedRuleGroup): array;
+
     /**
      * Find reports by a set of criteria.
      *
@@ -16,7 +24,7 @@ interface ReportsStorageInterface
      *
      * @return ReportInterface[]
      */
-    public function findBy(array $criteria, array $orderBy = null, int $limit = null, int $offset = null);
+    public function findBy(array $criteria, array $orderBy = null, int $limit = null, int $offset = null): array;
 
     /**
      * Find a single report by a set of criteria.

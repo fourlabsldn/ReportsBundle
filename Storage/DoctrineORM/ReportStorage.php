@@ -3,6 +3,8 @@
 namespace FL\ReportsBundle\Storage\DoctrineORM;
 
 use Doctrine\ORM\EntityManagerInterface;
+use FL\QBJSParser\Parsed\AbstractParsedRuleGroup;
+use FL\QBJSParser\Parsed\Doctrine\ParsedRuleGroup;
 use FL\ReportsBundle\Model\ReportInterface;
 use FL\ReportsBundle\Storage\ReportsStorageInterface;
 
@@ -33,9 +35,21 @@ class ReportStorage implements ReportsStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function findBy(array $criteria, array $orderBy = null, int $limit = null, int $offset = null)
+    public function findByParsedRuleGroup(AbstractParsedRuleGroup $parsedRuleGroup): array
     {
-        $this->entityManager->getRepository($this->reportClass)->findBy($criteria, $orderBy, $limit, $offset);
+        /** @var ParsedRuleGroup $parsedRuleGroup */
+        return $this->entityManager
+            ->createQuery($parsedRuleGroup->getDqlString())
+            ->setParameters($parsedRuleGroup->getParameters())
+            ->getResult();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function findBy(array $criteria, array $orderBy = null, int $limit = null, int $offset = null): array
+    {
+        return $this->entityManager->getRepository($this->reportClass)->findBy($criteria, $orderBy, $limit, $offset);
     }
 
     /**
@@ -43,7 +57,7 @@ class ReportStorage implements ReportsStorageInterface
      */
     public function findOneBy(array $criteria)
     {
-        $this->entityManager->getRepository($this->reportClass)->findOneBy($criteria);
+        return $this->entityManager->getRepository($this->reportClass)->findOneBy($criteria);
     }
 
     /**
