@@ -1,5 +1,8 @@
 #ReportsBundle
 
+[![StyleCI](https://styleci.io/repos/75387636/shield?branch=master)](https://styleci.io/repos/75387636)
+
+
 ### Installation
 
 - `composer require fourlabs/reports-bundle`
