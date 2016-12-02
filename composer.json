@@ -27,7 +27,10 @@
     "symfony/dependency-injection": "~2.8|~3.0|~3.1",
     "symfony/http-kernel": "~2.8|~3.0|~3.1",
     "symfony/event-dispatcher": "~2.8|~3.0|~3.1",
-    "symfony/property-info": "~2.8|~3.0|~3.1"
+    "symfony/property-info": "~2.8|~3.0|~3.1",
+    "symfony/routing": "~2.8|~3.0|~3.1",
+    "exercise/htmlpurifier-bundle": "^0.2.3",
+    "symfony/serializer": "~2.8|~3.0|~3.1"
   },
   "autoload": {
     "psr-4": {
