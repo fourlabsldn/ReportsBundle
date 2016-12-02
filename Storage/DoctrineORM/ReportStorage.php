@@ -68,4 +68,13 @@ class ReportStorage implements ReportsStorageInterface
         $this->entityManager->persist($report);
         $this->entityManager->flush();
     }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function remove(ReportInterface $report)
+    {
+        $this->entityManager->remove($report);
+        $this->entityManager->flush();
+    }
 }

@@ -39,4 +39,9 @@ interface ReportsStorageInterface
      * @param ReportInterface $report
      */
     public function persist(ReportInterface $report);
+
+    /**
+     * @param ReportInterface $report
+     */
+    public function remove(ReportInterface $report);
 }
