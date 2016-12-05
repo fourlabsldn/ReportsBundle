@@ -58,3 +58,7 @@ services:
     tags:
       - { name: kernel.event_listener, event: fl_reports.result_column_created, method: onResultColumnCreated }
 ```
+
+### TODOS
+
+Templates and javascript. You have to implement these yourself right now.
