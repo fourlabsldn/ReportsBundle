@@ -1,11 +1,11 @@
-tripr_hq_api_reports_show:
+fl_reports_api_reports_show:
   path: /reports/{reportName}
   methods: [GET, HEAD]
   defaults:
     _controller: FL\ReportsBundle\Action\Reports\Rest\Show:__invoke
     _format: "json"
 
-tripr_hq_api_reports_delete:
+fl_reports_api_reports_delete:
   path: /reports/{reportName}
   methods: [DELETE]
   defaults:
@@ -14,7 +14,7 @@ tripr_hq_api_reports_delete:
   options:
       expose: true
 
-tripr_hq_api_reports_save:
+fl_reports_api_reports_save:
   path: /reports/{reportName}
   methods: [PUT]
   defaults:
@@ -23,7 +23,7 @@ tripr_hq_api_reports_save:
   options:
       expose: true
 
-tripr_hq_api_reports_build:
+fl_reports_api_reports_build:
   path: /reports_build
   methods: [POST]
   defaults:
