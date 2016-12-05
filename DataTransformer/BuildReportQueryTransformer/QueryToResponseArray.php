@@ -12,7 +12,6 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\PropertyAccess\Exception\UnexpectedTypeException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use FL\ReportsBundle\DataObjects\BuildReportQuery;
-use Vich\UploaderBundle\Templating\Helper\UploaderHelper;
 
 class QueryToResponseArray
 {
@@ -20,11 +19,6 @@ class QueryToResponseArray
      * @var JsonQueryParserInterface
      */
     protected $jsonQueryParser;
-
-    /**
-     * @var UploaderHelper
-     */
-    protected $uploaderHelper;
 
     /**
      * @var \HTMLPurifier
@@ -43,20 +37,17 @@ class QueryToResponseArray
 
     /**
      * @param JsonQueryParserInterface      $jsonQueryParser
-     * @param UploaderHelper                $uploaderHelper
      * @param \HTMLPurifier                 $htmlPurifier
      * @param ReportResultsStorageInterface $reportResultsStorage
      * @param EventDispatcherInterface      $dispatcher
      */
     public function __construct(
         JsonQueryParserInterface $jsonQueryParser,
-        UploaderHelper $uploaderHelper,
         \HTMLPurifier $htmlPurifier,
         ReportResultsStorageInterface $reportResultsStorage,
         EventDispatcherInterface $dispatcher
     ) {
         $this->jsonQueryParser = $jsonQueryParser;
-        $this->uploaderHelper = $uploaderHelper;
         $this->htmlPurifier = $htmlPurifier;
         $this->reportResultsStorage = $reportResultsStorage;
         $this->dispatcher = $dispatcher;

@@ -11,7 +11,6 @@ services:
     class: FL\ReportsBundle\DataTransformer\BuildReportQueryTransformer\QueryToResponseArray
     arguments:
       - "@fl_qbjs_parser.json_query_parser"
-      - "@vich_uploader.templating.helper.uploader_helper"
       - "@exercise_html_purifier.default"
       - "@fl_reports.storage.doctrine_orm.report_results"
       - "@event_dispatcher"
