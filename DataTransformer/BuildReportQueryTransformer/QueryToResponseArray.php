@@ -4,8 +4,11 @@ namespace FL\ReportsBundle\DataTransformer\BuildReportQueryTransformer;
 
 use FL\QBJSParserBundle\Model\Builder\ResultColumn;
 use FL\QBJSParserBundle\Service\JsonQueryParserInterface;
+use FL\ReportsBundle\Event\ResultColumnCreatedEvent;
 use FL\ReportsBundle\Model\ReportInterface;
+use FL\ReportsBundle\Model\ReportResultColumn;
 use FL\ReportsBundle\Storage\ReportResultsStorageInterface;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\PropertyAccess\Exception\UnexpectedTypeException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use FL\ReportsBundle\DataObjects\BuildReportQuery;
@@ -34,21 +37,29 @@ class QueryToResponseArray
     protected $reportResultsStorage;
 
     /**
+     * @var EventDispatcherInterface
+     */
+    protected $dispatcher;
+
+    /**
      * @param JsonQueryParserInterface      $jsonQueryParser
      * @param UploaderHelper                $uploaderHelper
      * @param \HTMLPurifier                 $htmlPurifier
      * @param ReportResultsStorageInterface $reportResultsStorage
+     * @param EventDispatcherInterface      $dispatcher
      */
     public function __construct(
         JsonQueryParserInterface $jsonQueryParser,
         UploaderHelper $uploaderHelper,
         \HTMLPurifier $htmlPurifier,
-        ReportResultsStorageInterface $reportResultsStorage
+        ReportResultsStorageInterface $reportResultsStorage,
+        EventDispatcherInterface $dispatcher
     ) {
         $this->jsonQueryParser = $jsonQueryParser;
         $this->uploaderHelper = $uploaderHelper;
         $this->htmlPurifier = $htmlPurifier;
         $this->reportResultsStorage = $reportResultsStorage;
+        $this->dispatcher = $dispatcher;
     }
 
     /**
@@ -138,44 +149,17 @@ class QueryToResponseArray
 
         foreach ($results as $key => $result) { // go through a single page
             foreach ($report->getColumns() as $column) {
-                if ($result instanceof TaskUploadSubmission && $column === 'uploadName') {
-                    $stringValue = sprintf(
-                        '<a href="%s">%s</a>',
-                        $this->uploaderHelper->asset($result, 'uploadFile'),
-                        $result->getUploadName()
-                    );
-                    $serializedResults[$key][$column] = $this->htmlPurifier->purify($stringValue);
-                    continue;
-                }
-                if ($result instanceof TaskDownloadSubmission && $column === 'task.downloadName') {
-                    $stringValue = sprintf(
-                        '<a href="%s">%s</a>',
-                        $result->getTask() ? $this->uploaderHelper->asset($result->getTask(), 'downloadFile') : '',
-                        $result->getTask()->getDownloadName()
-                    );
-                    $serializedResults[$key][$column] = $this->htmlPurifier->purify($stringValue);
-                    continue;
-                }
-                if ($result instanceof TaskLinkSubmission && $column === 'task.url') {
-                    $stringValue = sprintf(
-                        '<a href="%s">%s</a>',
-                        $result->getTask()->getUrl(),
-                        $result->getTask()->getUrl()
-                    );
-                    $serializedResults[$key][$column] = $this->htmlPurifier->purify($stringValue);
-                    continue;
-                }
-                if ($result instanceof TaskFormSubmission && $column === 'answers') {
-                    $stringValue = $result->getQuestionAnswerPairsAsString();
-                    $serializedResults[$key][$column] = $this->htmlPurifier->purify($stringValue);
-                    continue;
-                }
                 try {
-                    $stringValue = $this->valueToString($accessor->getValue($result, $column));
+                    $columnValue = $this->valueToString($accessor->getValue($result, $column));
                 } catch (UnexpectedTypeException $exception) { // when accessing several levels deep, one of the properties might be null
-                    $stringValue = '';
+                    $columnValue = '';
                 }
-                $serializedResults[$key][$column] = $this->htmlPurifier->purify($stringValue);
+                $reportResultColumn = new ReportResultColumn($column, $columnValue);
+                $this->dispatcher->dispatch(ResultColumnCreatedEvent::EVENT_NAME, new ResultColumnCreatedEvent(
+                    $result,
+                    $reportResultColumn
+                ));
+                $serializedResults[$key][$column] = $this->htmlPurifier->purify($reportResultColumn->getColumnValue());
             }
         }
 
