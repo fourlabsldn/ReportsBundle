@@ -1,4 +1,8 @@
-## Sample Post
+# BUILD ACTION
+
+These examples are for `\FL\ReportsBundle\Action\Rest\Build`.
+
+## Sample Json Post Request
 
 ```json
 {
@@ -13,7 +17,7 @@
 }   
 ```
 
-## Sample Response
+## Sample Json Response
 ```json
 {
   "data": {
