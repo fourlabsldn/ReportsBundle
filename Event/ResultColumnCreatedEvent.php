@@ -20,7 +20,7 @@ class ResultColumnCreatedEvent extends Event
     protected $reportResultColumn;
 
     /**
-     * @param object $resultObject
+     * @param object                      $resultObject
      * @param ReportResultColumnInterface $reportResultColumn
      */
     public function __construct($resultObject, ReportResultColumnInterface $reportResultColumn)
