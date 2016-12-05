@@ -6,7 +6,7 @@ use FL\QBJSParserBundle\Service\JavascriptBuilders;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * The class name New is reserved
+ * The class name New is reserved.
  */
 class NewReport
 {
@@ -21,7 +21,7 @@ class NewReport
     protected $javascriptBuilders;
 
     /**
-     * @param \Twig_Environment $twig
+     * @param \Twig_Environment  $twig
      * @param JavascriptBuilders $javascriptBuilders
      */
     public function __construct(

@@ -21,7 +21,7 @@ class Show
 
     /**
      * @param RequestToReport $requestToReportTransformer
-     * @param mixed $serializer
+     * @param mixed           $serializer
      */
     public function __construct(
         RequestToReport $requestToReportTransformer,
@@ -33,7 +33,8 @@ class Show
 
     /**
      * @param Request $request
-     * @param string $reportName
+     * @param string  $reportName
+     *
      * @return JsonResponse
      */
     public function __invoke(Request $request, string $reportName): JsonResponse
@@ -41,7 +42,7 @@ class Show
         try {
             $report = $this->requestToReportTransformer->fromRestShowRequest($reportName);
         } catch (RequestTransformationException $exception) {
-            return new JsonResponse(['message'=>$exception->getCode()], $exception->getHttpErrorCode());
+            return new JsonResponse(['message' => $exception->getCode()], $exception->getHttpErrorCode());
         }
 
         return new JsonResponse($this->serializer->serialize($report, 'json'), JsonResponse::HTTP_OK);

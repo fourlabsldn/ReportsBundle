@@ -33,18 +33,18 @@ class Build
      * @var JavascriptBuilders
      */
     protected $javascriptBuilders;
-    
+
     /**
      * @var RouterInterface
      */
     protected $router;
 
     /**
-     * @param RequestToReport $requestToReportTransformer
+     * @param RequestToReport          $requestToReportTransformer
      * @param RequestToPaginationQuery $requestToPaginationQuery
-     * @param QueryToResponseArray $queryToResponseArray
-     * @param JavascriptBuilders $javascriptBuilders
-     * @param RouterInterface $router
+     * @param QueryToResponseArray     $queryToResponseArray
+     * @param JavascriptBuilders       $javascriptBuilders
+     * @param RouterInterface          $router
      */
     public function __construct(
         RequestToReport $requestToReportTransformer,
@@ -62,6 +62,7 @@ class Build
 
     /**
      * @param Request $request
+     *
      * @return JsonResponse
      */
     public function __invoke(Request $request): JsonResponse
@@ -78,7 +79,7 @@ class Build
             return new JsonResponse(['message' => $exception->getMessage()], $exception->getHttpErrorCode());
         }
 
-        if (! ($correspondingBuilder = $this->javascriptBuilders->getBuilderById($report->getReportBuilderId()))) {
+        if (!($correspondingBuilder = $this->javascriptBuilders->getBuilderById($report->getReportBuilderId()))) {
             return new JsonResponse(['message' => 'Invalid parameter: reportName'], JsonResponse::HTTP_NOT_FOUND);
         }
 
@@ -86,7 +87,7 @@ class Build
             $report,
             $paginationQuery,
             $correspondingBuilder,
-            $request->getSchemeAndHttpHost() . $request->getRequestUri()
+            $request->getSchemeAndHttpHost().$request->getRequestUri()
         ));
 
         return new JsonResponse($responseArray, 200);

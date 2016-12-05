@@ -30,8 +30,8 @@ class BuildReportQuery
     /**
      * @param ReportInterface $report
      * @param PaginationQuery $paginationQuery
-     * @param Builder $reportBuilder
-     * @param string $baseUrl
+     * @param Builder         $reportBuilder
+     * @param string          $baseUrl
      */
     public function __construct(
         ReportInterface $report,

@@ -20,12 +20,12 @@ class ReportStorage implements ReportStorageInterface
 
     /**
      * @param EntityManagerInterface $entityManager
-     * @param string $reportClass
+     * @param string                 $reportClass
      */
     public function __construct(
         EntityManagerInterface $entityManager,
         string $reportClass
-    ){
+    ) {
         $this->entityManager = $entityManager;
         $this->reportClass = $reportClass;
     }

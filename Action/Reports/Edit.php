@@ -26,8 +26,8 @@ class Edit
     protected $reportStorage;
 
     /**
-     * @param \Twig_Environment $twig
-     * @param JavascriptBuilders $javascriptBuilders
+     * @param \Twig_Environment      $twig
+     * @param JavascriptBuilders     $javascriptBuilders
      * @param ReportStorageInterface $reportStorage
      */
     public function __construct(
@@ -42,9 +42,10 @@ class Edit
 
     public function __invoke(Request $request, string $id): Response
     {
-        if (! ($report = $this->reportStorage->findOneBy(['id'=>$id]))) {
+        if (!($report = $this->reportStorage->findOneBy(['id' => $id]))) {
             throw new NotFoundHttpException();
         }
+
         return new Response($this->twig->render(
             'FLReportsBundle:Reports:edit.html.twig', [
                 'builders' => $this->javascriptBuilders->getBuilders(),
