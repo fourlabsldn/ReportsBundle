@@ -14,3 +14,5 @@ fl_reports_reports_edit:
   path: /reports/{id}/edit
   defaults: { _controller: FL\ReportsBundle\Action\Reports\Edit:__invoke }
   methods: [GET]
+  requirements:
+    id: \d+
