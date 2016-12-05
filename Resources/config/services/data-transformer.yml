@@ -10,7 +10,7 @@ services:
   fl_reports.data_transformer.build_report_query.to_response_array.doctrine_orm:
     class: FL\ReportsBundle\DataTransformer\BuildReportQueryTransformer\QueryToResponseArray
     arguments:
-      - "@fl_qbjs_parser.json_query_parser"
+      - "@fl_qbjs_parser.json_query_parser.doctrine_orm_parser"
       - "@exercise_html_purifier.default"
       - "@fl_reports.storage.doctrine_orm.report_results"
       - "@event_dispatcher"

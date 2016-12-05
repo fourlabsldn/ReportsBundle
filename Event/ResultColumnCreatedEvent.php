@@ -32,7 +32,7 @@ class ResultColumnCreatedEvent extends Event
     /**
      * @return object
      */
-    public function getResultObject(): object
+    public function getResultObject()
     {
         return $this->resultObject;
     }
