@@ -1,0 +1,16 @@
+fl_reports_reports_index:
+  path: /reports
+  defaults: { _controller: FL\ReportsBundle\Action\Reports\Index:__invoke }
+  methods: [GET]
+  options:
+      expose: true
+
+fl_reports_reports_new:
+  path: /reports/new
+  defaults: { _controller: FL\ReportsBundle\Action\Reports\NewReport:__invoke }
+  methods: [GET]
+
+fl_reports_reports_edit:
+  path: /reports/{id}/edit
+  defaults: { _controller: FL\ReportsBundle\Action\Reports\Edit:__invoke }
+  methods: [GET]

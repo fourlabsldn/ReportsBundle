@@ -2,7 +2,7 @@
 
 namespace FL\ReportsBundle\Action\Reports\Rest;
 
-use FL\ReportsBundle\Storage\ReportsStorageInterface;
+use FL\ReportsBundle\Storage\ReportStorageInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use FL\ReportsBundle\DataTransformer\RequestTransformer\RequestToReport;
@@ -15,20 +15,20 @@ class Delete
     protected $requestToReportTransformer;
 
     /**
-     * @var ReportsStorageInterface
+     * @var ReportStorageInterface
      */
-    protected $reportsStorage;
+    protected $reportStorage;
 
     /**
      * @param RequestToReport $requestToReportTransformer,
-     * @param ReportsStorageInterface $reportsStorage
+     * @param ReportStorageInterface $reportStorage
      */
     public function __construct(
         RequestToReport $requestToReportTransformer,
-        ReportsStorageInterface $reportsStorage
+        ReportStorageInterface $reportStorage
     ) {
         $this->requestToReportTransformer = $requestToReportTransformer;
-        $this->reportsStorage = $reportsStorage;
+        $this->reportStorage = $reportStorage;
     }
 
     /**
@@ -40,7 +40,7 @@ class Delete
     public function __invoke(Request $request, string $reportName): JsonResponse
     {
         if ($report = $this->requestToReportTransformer->fromRestDeleteRequest($reportName)) {
-            $this->reportsStorage->remove($report);
+            $this->reportStorage->remove($report);
         }
 
         return new JsonResponse(null, JsonResponse::HTTP_NO_CONTENT);

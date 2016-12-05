@@ -6,7 +6,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\RouterInterface;
 use FL\QBJSParserBundle\Service\JavascriptBuilders;
-use FL\QBJSParserBundle\Service\JsonQueryParser;
 use FL\ReportsBundle\DataTransformer\BuildReportQueryTransformer\QueryToResponseArray;
 use FL\ReportsBundle\DataTransformer\RequestTransformer\RequestToPaginationQuery;
 use FL\ReportsBundle\DataTransformer\RequestTransformer\RequestToReport;
@@ -34,12 +33,7 @@ class Build
      * @var JavascriptBuilders
      */
     protected $javascriptBuilders;
-
-    /**
-     * @var JsonQueryParser
-     */
-    protected $jsonQueryParser;
-
+    
     /**
      * @var RouterInterface
      */
@@ -50,7 +44,6 @@ class Build
      * @param RequestToPaginationQuery $requestToPaginationQuery
      * @param QueryToResponseArray $queryToResponseArray
      * @param JavascriptBuilders $javascriptBuilders
-     * @param JsonQueryParser $jsonQueryParser
      * @param RouterInterface $router
      */
     public function __construct(
@@ -58,14 +51,12 @@ class Build
         RequestToPaginationQuery $requestToPaginationQuery,
         QueryToResponseArray $queryToResponseArray,
         JavascriptBuilders $javascriptBuilders,
-        JsonQueryParser $jsonQueryParser,
         RouterInterface $router
     ) {
         $this->requestToReportTransformer = $requestToReportTransformer;
         $this->requestToPaginationQuery = $requestToPaginationQuery;
         $this->queryToResponseArray = $queryToResponseArray;
         $this->javascriptBuilders = $javascriptBuilders;
-        $this->jsonQueryParser = $jsonQueryParser;
         $this->router = $router;
     }
 

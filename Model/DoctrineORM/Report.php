@@ -4,11 +4,12 @@ namespace FL\ReportsBundle\Model\DoctrineORM;
 
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
+use FL\ReportsBundle\Model\Report as BaseReport;
 
 /**
  * @ORM\MappedSuperclass()
  */
-class Report extends \FL\ReportsBundle\Model\Report
+class Report extends BaseReport
 {
     /**
      * @var int

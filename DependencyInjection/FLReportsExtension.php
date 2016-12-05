@@ -1,6 +1,6 @@
 <?php
 
-namespace FL\QBJSParserBundle\DependencyInjection;
+namespace FL\ReportsBundle\DependencyInjection;
 
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Config\FileLocator;
@@ -22,7 +22,7 @@ class FLReportsExtension extends Extension
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
 
-        //$container->setParameter('fl_reports.some_parameter', $config['some_parameter']);
+        $container->setParameter('fl_reports.report_class', $config['report_class']);
 
         $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services.yml');

@@ -2,18 +2,10 @@
 
 namespace FL\ReportsBundle\Storage;
 
-use FL\QBJSParser\Parsed\AbstractParsedRuleGroup;
 use FL\ReportsBundle\Model\ReportInterface;
 
-interface ReportsStorageInterface
+interface ReportStorageInterface
 {
-    /**
-     * @param AbstractParsedRuleGroup $parsedRuleGroup
-     *
-     * @return ReportInterface[]
-     */
-    public function findByParsedRuleGroup(AbstractParsedRuleGroup $parsedRuleGroup): array;
-
     /**
      * Find reports by a set of criteria.
      *

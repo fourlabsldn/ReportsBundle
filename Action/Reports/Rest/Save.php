@@ -2,7 +2,7 @@
 
 namespace FL\ReportsBundle\Action\Reports\Rest;
 
-use FL\ReportsBundle\Storage\ReportsStorageInterface;
+use FL\ReportsBundle\Storage\ReportStorageInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use FL\ReportsBundle\DataTransformer\RequestTransformer\RequestToReport;
@@ -16,9 +16,9 @@ class Save
     protected $requestToReportTransformer;
 
     /**
-     * @var ReportsStorageInterface
+     * @var ReportStorageInterface
      */
-    protected $reportsStorage;
+    protected $reportStorage;
 
     /**
      * @var mixed
@@ -27,16 +27,16 @@ class Save
 
     /**
      * @param RequestToReport $requestToReportTransformer
-     * @param ReportsStorageInterface $reportsStorage
+     * @param ReportStorageInterface $reportStorage
      * @param mixed $serializer
      */
     public function __construct(
         RequestToReport $requestToReportTransformer,
-        ReportsStorageInterface $reportsStorage,
+        ReportStorageInterface $reportStorage,
         $serializer // allow other serializers
     ) {
         $this->requestToReportTransformer = $requestToReportTransformer;
-        $this->reportsStorage = $reportsStorage;
+        $this->reportStorage = $reportStorage;
         $this->serializer = $serializer;
     }
 
@@ -53,7 +53,7 @@ class Save
             return new JsonResponse(['message' => $exception->getMessage()], $exception->getHttpErrorCode());
         }
 
-        $this->reportsStorage->persist($report);
+        $this->reportStorage->persist($report);
 
         return new JsonResponse($this->serializer->serialize($report, 'json'), JsonResponse::HTTP_OK);
     }

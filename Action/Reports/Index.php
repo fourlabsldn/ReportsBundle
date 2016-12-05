@@ -3,7 +3,7 @@
 namespace FL\ReportsBundle\Action\Reports;
 
 use FL\QBJSParserBundle\Service\JavascriptBuilders;
-use FL\ReportsBundle\Storage\ReportsStorageInterface;
+use FL\ReportsBundle\Storage\ReportStorageInterface;
 use Symfony\Component\HttpFoundation\Response;
 
 class Index
@@ -19,28 +19,28 @@ class Index
     protected $javascriptBuilders;
 
     /**
-     * @var ReportsStorageInterface
+     * @var ReportStorageInterface
      */
-    protected $reportsStorage;
+    protected $reportStorage;
 
     /**
      * @param \Twig_Environment $twig
      * @param JavascriptBuilders $javascriptBuilders
-     * @param ReportsStorageInterface $reportsStorage
+     * @param ReportStorageInterface $reportStorage
      */
     public function __construct(
         \Twig_Environment $twig,
         JavascriptBuilders $javascriptBuilders,
-        ReportsStorageInterface $reportsStorage
+        ReportStorageInterface $reportStorage
     ) {
         $this->twig = $twig;
         $this->javascriptBuilders = $javascriptBuilders;
-        $this->reportsStorage = $reportsStorage;
+        $this->reportStorage = $reportStorage;
     }
 
     public function __invoke(): Response
     {
-        $reports = $this->reportsStorage->findBy([], ['reportName'=>'ASC']);
+        $reports = $this->reportStorage->findBy([], ['reportName'=>'ASC']);
         return new Response($this->twig->render('FLReportsBundle:Reports:index.html.twig', [
             'reports' => $reports,
         ]));

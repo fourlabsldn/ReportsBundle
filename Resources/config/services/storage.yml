@@ -1,0 +1,10 @@
+services:
+  fl_reports.storage.doctrine_orm.report:
+    class: FL\ReportsBundle\Storage\DoctrineORM\ReportStorage
+    arguments:
+      - "@doctrine.orm.entity_manager"
+      - "%fl_reports.report_class%"
+  fl_reports.storage.doctrine_orm.report_results:
+    class: FL\ReportsBundle\Storage\DoctrineORM\ReportResultsStorage
+    arguments:
+      - "@doctrine.orm.entity_manager"

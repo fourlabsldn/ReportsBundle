@@ -119,5 +119,5 @@ interface ReportInterface
     /**
      * @return ReportInterface
      */
-    public function clearSortColumns() : ReportInterface;;
+    public function clearSortColumns() : ReportInterface;
 }

@@ -3,12 +3,10 @@
 namespace FL\ReportsBundle\Storage\DoctrineORM;
 
 use Doctrine\ORM\EntityManagerInterface;
-use FL\QBJSParser\Parsed\AbstractParsedRuleGroup;
-use FL\QBJSParser\Parsed\Doctrine\ParsedRuleGroup;
 use FL\ReportsBundle\Model\ReportInterface;
-use FL\ReportsBundle\Storage\ReportsStorageInterface;
+use FL\ReportsBundle\Storage\ReportStorageInterface;
 
-class ReportStorage implements ReportsStorageInterface
+class ReportStorage implements ReportStorageInterface
 {
     /**
      * @var EntityManagerInterface
@@ -30,18 +28,6 @@ class ReportStorage implements ReportsStorageInterface
     ){
         $this->entityManager = $entityManager;
         $this->reportClass = $reportClass;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function findByParsedRuleGroup(AbstractParsedRuleGroup $parsedRuleGroup): array
-    {
-        /** @var ParsedRuleGroup $parsedRuleGroup */
-        return $this->entityManager
-            ->createQuery($parsedRuleGroup->getDqlString())
-            ->setParameters($parsedRuleGroup->getParameters())
-            ->getResult();
     }
 
     /**

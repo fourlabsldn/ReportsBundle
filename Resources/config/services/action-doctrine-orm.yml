@@ -1,0 +1,42 @@
+services:
+  'FL\ReportsBundle\Action\Reports\New':
+    class: FL\ReportsBundle\Action\Reports\NewReport
+    arguments:
+      - "@twig"
+      - "@fl_qbjs_parser.javascript_builders"
+  'FL\ReportsBundle\Action\Reports\Index':
+    class: FL\ReportsBundle\Action\Reports\Index
+    arguments:
+      - "@twig"
+      - "@fl_qbjs_parser.javascript_builders"
+      - "@fl_reports.storage.doctrine_orm.report"
+  'FL\ReportsBundle\Action\Reports\Edit':
+    class: FL\ReportsBundle\Action\Reports\Edit
+    arguments:
+      - "@twig"
+      - "@fl_qbjs_parser.javascript_builders"
+      - "@fl_reports.storage.doctrine_orm.report"
+  'FL\ReportsBundle\Action\Reports\Rest\Show':
+    class: FL\ReportsBundle\Action\Reports\Rest\Show
+    arguments:
+      - "@fl_reports.data_transformer.request_to_report.doctrine_orm"
+      - "@serializer"
+  'FL\ReportsBundle\Action\Reports\Rest\Delete':
+    class: FL\ReportsBundle\Action\Reports\Rest\Delete
+    arguments:
+      - "@fl_reports.data_transformer.request_to_report.doctrine_orm"
+      - "@fl_reports.storage.doctrine_orm.report"
+  'FL\ReportsBundle\Action\Reports\Rest\Save':
+    class: FL\ReportsBundle\Action\Reports\Rest\Save
+    arguments:
+      - "@fl_reports.data_transformer.request_to_report.doctrine_orm"
+      - "@fl_reports.storage.doctrine_orm.report"
+      - "@jms_serializer"
+  'FL\ReportsBundle\Action\Reports\Rest\Build':
+    class: FL\ReportsBundle\Action\Reports\Rest\Build
+    arguments:
+      - "@fl_reports.data_transformer.request_to_report.doctrine_orm"
+      - "@fl_reports.data_transformer.request.to_pagination_query"
+      - "@fl_reports.data_transformer.build_report_query.to_response_array.doctrine_orm"
+      - "@fl_qbjs_parser.javascript_builders"
+      - "@router"

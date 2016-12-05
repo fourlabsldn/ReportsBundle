@@ -3,7 +3,7 @@
 namespace FL\ReportsBundle\Action\Reports;
 
 use FL\QBJSParserBundle\Service\JavascriptBuilders;
-use FL\ReportsBundle\Storage\ReportsStorageInterface;
+use FL\ReportsBundle\Storage\ReportStorageInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -21,28 +21,28 @@ class Edit
     protected $javascriptBuilders;
 
     /**
-     * @var ReportsStorageInterface
+     * @var ReportStorageInterface
      */
-    protected $reportsStorage;
+    protected $reportStorage;
 
     /**
      * @param \Twig_Environment $twig
      * @param JavascriptBuilders $javascriptBuilders
-     * @param ReportsStorageInterface $reportsStorage
+     * @param ReportStorageInterface $reportStorage
      */
     public function __construct(
         \Twig_Environment $twig,
         JavascriptBuilders $javascriptBuilders,
-        ReportsStorageInterface $reportsStorage
+        ReportStorageInterface $reportStorage
     ) {
         $this->twig = $twig;
         $this->javascriptBuilders = $javascriptBuilders;
-        $this->reportsStorage = $reportsStorage;
+        $this->reportStorage = $reportStorage;
     }
 
     public function __invoke(Request $request, string $id): Response
     {
-        if (! ($report = $this->reportsStorage->findOneBy(['id'=>$id]))) {
+        if (! ($report = $this->reportStorage->findOneBy(['id'=>$id]))) {
             throw new NotFoundHttpException();
         }
         return new Response($this->twig->render(
