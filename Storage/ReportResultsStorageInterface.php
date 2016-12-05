@@ -2,15 +2,14 @@
 
 namespace FL\ReportsBundle\Storage;
 
-
 use FL\QBJSParser\Parsed\AbstractParsedRuleGroup;
 
 interface ReportResultsStorageInterface
 {
     /**
      * @param AbstractParsedRuleGroup $parsedRuleGroup
-     * @param int $firstResult
-     * @param int $resultsPerPage
+     * @param int                     $firstResult
+     * @param int                     $resultsPerPage
      *
      * @return object[]
      */
@@ -18,8 +17,8 @@ interface ReportResultsStorageInterface
 
     /**
      * @param AbstractParsedRuleGroup $parsedRuleGroup
-     * @param int $firstResult
-     * @param int $resultsPerPage
+     * @param int                     $firstResult
+     * @param int                     $resultsPerPage
      *
      * @return int
      */

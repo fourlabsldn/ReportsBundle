@@ -20,7 +20,7 @@ class Delete
     protected $reportStorage;
 
     /**
-     * @param RequestToReport $requestToReportTransformer,
+     * @param RequestToReport        $requestToReportTransformer,
      * @param ReportStorageInterface $reportStorage
      */
     public function __construct(
@@ -33,7 +33,7 @@ class Delete
 
     /**
      * @param Request $request
-     * @param string $reportName
+     * @param string  $reportName
      *
      * @return JsonResponse
      */

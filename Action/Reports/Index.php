@@ -24,8 +24,8 @@ class Index
     protected $reportStorage;
 
     /**
-     * @param \Twig_Environment $twig
-     * @param JavascriptBuilders $javascriptBuilders
+     * @param \Twig_Environment      $twig
+     * @param JavascriptBuilders     $javascriptBuilders
      * @param ReportStorageInterface $reportStorage
      */
     public function __construct(
@@ -40,7 +40,8 @@ class Index
 
     public function __invoke(): Response
     {
-        $reports = $this->reportStorage->findBy([], ['reportName'=>'ASC']);
+        $reports = $this->reportStorage->findBy([], ['reportName' => 'ASC']);
+
         return new Response($this->twig->render('FLReportsBundle:Reports:index.html.twig', [
             'reports' => $reports,
         ]));

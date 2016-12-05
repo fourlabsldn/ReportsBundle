@@ -34,9 +34,9 @@ class QueryToResponseArray
     protected $reportResultsStorage;
 
     /**
-     * @param JsonQueryParserInterface $jsonQueryParser
-     * @param UploaderHelper $uploaderHelper
-     * @param \HTMLPurifier $htmlPurifier
+     * @param JsonQueryParserInterface      $jsonQueryParser
+     * @param UploaderHelper                $uploaderHelper
+     * @param \HTMLPurifier                 $htmlPurifier
      * @param ReportResultsStorageInterface $reportResultsStorage
      */
     public function __construct(
@@ -75,19 +75,18 @@ class QueryToResponseArray
         $totalPages = ceil($totalResults / $resultsPerPage);
 
         $responseArray = [
-            'data' =>
-                [
+            'data' => [
                     'columns' => array_values($report->getColumns()),
                     'reportColumnsHumanReadable' => $columnsHumanReadable,
-                    'results' => $serializedResults
+                    'results' => $serializedResults,
                 ],
             'state' => [
                 'currentPage' => $currentPage,
                 'maxResultsPerPage' => $resultsPerPage,
                 'resultsInThisPage' => count($serializedResults),
-                'totalResults'=> $totalResults,
+                'totalResults' => $totalResults,
                 'totalPages' => $totalPages,
-            ]
+            ],
         ];
 
         $responseArray['links']['self']['baseUrl'] = $buildReportQuery->getBaseUrl();
@@ -99,7 +98,7 @@ class QueryToResponseArray
             'reportSortColumns' => $report->getSortColumns(),
             'rulesJsonString' => $report->getRulesJsonString(),
         ];
-        if ( $currentPage > 1) {
+        if ($currentPage > 1) {
             $responseArray['links']['prev']['baseUrl'] = $buildReportQuery->getBaseUrl();
             $responseArray['links']['prev']['data'] = [
                 'currentPage' => $currentPage - 1,
@@ -110,7 +109,7 @@ class QueryToResponseArray
                 'rulesJsonString' => $report->getRulesJsonString(),
             ];
         }
-        if ( $currentPage < $totalPages) {
+        if ($currentPage < $totalPages) {
             $responseArray['links']['next']['baseUrl'] = $buildReportQuery->getBaseUrl();
             $responseArray['links']['next']['data'] = [
                 'currentPage' => $currentPage + 1,
@@ -126,7 +125,7 @@ class QueryToResponseArray
     }
 
     /**
-     * @param object[] $results
+     * @param object[]        $results
      * @param ReportInterface $report
      *
      * @return array
@@ -151,7 +150,7 @@ class QueryToResponseArray
                 if ($result instanceof TaskDownloadSubmission && $column === 'task.downloadName') {
                     $stringValue = sprintf(
                         '<a href="%s">%s</a>',
-                        $result->getTask() ?$this->uploaderHelper->asset($result->getTask(), 'downloadFile') : '',
+                        $result->getTask() ? $this->uploaderHelper->asset($result->getTask(), 'downloadFile') : '',
                         $result->getTask()->getDownloadName()
                     );
                     $serializedResults[$key][$column] = $this->htmlPurifier->purify($stringValue);
@@ -184,7 +183,7 @@ class QueryToResponseArray
     }
 
     /**
-     * @param ReportInterface $report
+     * @param ReportInterface  $report
      * @param BuildReportQuery $buildReportQuery
      *
      * @return array
@@ -194,9 +193,9 @@ class QueryToResponseArray
         /** @var ResultColumn $column */
         $columnsHumanReadable = [];
         foreach ($report->getColumns() as $column) {
-            if ($columnHumanReadable = $buildReportQuery->getReportBuilder()->getHumanReadableWithMachineName($column) ) {
+            if ($columnHumanReadable = $buildReportQuery->getReportBuilder()->getHumanReadableWithMachineName($column)) {
                 $columnsHumanReadable[] = $columnHumanReadable;
-            };
+            }
         }
 
         return $columnsHumanReadable;
@@ -209,13 +208,14 @@ class QueryToResponseArray
      */
     protected function valueToString($value): string
     {
-        if ( $value instanceof \DateTime || $value instanceof  \DateTimeImmutable) {
+        if ($value instanceof \DateTime || $value instanceof  \DateTimeImmutable) {
             if ($value->format('H:i') === '00:00') {
                 $value = $value->format('d-m-Y');
             } else {
                 $value = $value->format('d-m-Y H:i');
             }
         }
+
         return (string) $value;
     }
 }

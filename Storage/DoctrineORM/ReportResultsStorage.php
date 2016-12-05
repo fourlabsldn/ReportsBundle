@@ -62,7 +62,7 @@ class ReportResultsStorage implements ReportResultsStorageInterface
         ;
 
         $paginator = new Paginator($query, $fetchJoinCollection = false);
+
         return $paginator->count();
     }
-
 }

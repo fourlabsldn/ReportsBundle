@@ -128,7 +128,8 @@ class Report implements ReportInterface
         foreach ($this->columns as $column) {
             $json .= sprintf('"%s", ', $column);
         }
-        return rtrim($json,', ') . ']';
+
+        return rtrim($json, ', ').']';
     }
 
     /**
@@ -164,9 +165,9 @@ class Report implements ReportInterface
     /**
      * {@inheritdoc}
      */
-    public function clearColumns() : ReportInterface
+    public function clearColumns(): ReportInterface
     {
-        $this->columns =[];
+        $this->columns = [];
 
         return $this;
     }
@@ -184,7 +185,8 @@ class Report implements ReportInterface
                 $order
             );
         }
-        return rtrim($json,', ') . '}';
+
+        return rtrim($json, ', ').'}';
     }
 
     /**
@@ -225,7 +227,7 @@ class Report implements ReportInterface
      */
     public function clearSortColumns(): ReportInterface
     {
-        $this->sortColumns =[];
+        $this->sortColumns = [];
 
         return $this;
     }

@@ -10,9 +10,9 @@ class RequestTransformationException extends \InvalidArgumentException
     protected $httpErrorCode;
 
     /**
-     * @param string $message
-     * @param int $httpErrorCode
-     * @param int $code
+     * @param string          $message
+     * @param int             $httpErrorCode
+     * @param int             $code
      * @param \Exception|null $previous
      */
     public function __construct(string $message, int $httpErrorCode, int $code = 0, \Exception $previous = null)

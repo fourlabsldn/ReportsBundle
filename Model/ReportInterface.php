@@ -63,7 +63,7 @@ interface ReportInterface
     public function getColumnsAsJsonArray(): string;
 
     /**
-     * Columns that this report will show, when rendered
+     * Columns that this report will show, when rendered.
      *
      * @return string[]
      */
@@ -86,7 +86,7 @@ interface ReportInterface
     /**
      * @return ReportInterface
      */
-    public function clearColumns() : ReportInterface;
+    public function clearColumns(): ReportInterface;
 
     /**
      * @return string
@@ -95,7 +95,7 @@ interface ReportInterface
 
     /**
      * Columns that this report will sort by, when rendered
-     * Keys are columns, and values are 'ASC' or 'DESC'
+     * Keys are columns, and values are 'ASC' or 'DESC'.
      *
      * @return string[]
      */
@@ -119,5 +119,5 @@ interface ReportInterface
     /**
      * @return ReportInterface
      */
-    public function clearSortColumns() : ReportInterface;
+    public function clearSortColumns(): ReportInterface;
 }

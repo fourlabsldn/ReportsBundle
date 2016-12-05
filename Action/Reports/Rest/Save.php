@@ -26,9 +26,9 @@ class Save
     protected $serializer;
 
     /**
-     * @param RequestToReport $requestToReportTransformer
+     * @param RequestToReport        $requestToReportTransformer
      * @param ReportStorageInterface $reportStorage
-     * @param mixed $serializer
+     * @param mixed                  $serializer
      */
     public function __construct(
         RequestToReport $requestToReportTransformer,
@@ -42,7 +42,8 @@ class Save
 
     /**
      * @param Request $request
-     * @param string $reportName
+     * @param string  $reportName
+     *
      * @return JsonResponse
      */
     public function __invoke(Request $request, string $reportName): JsonResponse

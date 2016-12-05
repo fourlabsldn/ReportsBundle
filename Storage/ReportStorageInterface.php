@@ -21,7 +21,7 @@ interface ReportStorageInterface
     /**
      * Find a single report by a set of criteria.
      *
-     * @param array      $criteria
+     * @param array $criteria
      *
      * @return ReportInterface|null
      */
