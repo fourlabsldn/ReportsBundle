@@ -31,7 +31,7 @@ services:
     arguments:
       - "@fl_reports.data_transformer.request_to_report.doctrine_orm"
       - "@fl_reports.storage.doctrine_orm.report"
-      - "@jms_serializer"
+      - "@serializer"
   'FL\ReportsBundle\Action\Reports\Rest\Build':
     class: FL\ReportsBundle\Action\Reports\Rest\Build
     arguments:

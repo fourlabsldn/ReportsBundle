@@ -1,12 +1,12 @@
-fl_reports_api_reports_show:
-  path: /reports/{reportName}
+fl_reports_rest_reports_show:
+  path: /reports_rest/{reportName}
   methods: [GET, HEAD]
   defaults:
     _controller: FL\ReportsBundle\Action\Reports\Rest\Show:__invoke
     _format: "json"
 
-fl_reports_api_reports_delete:
-  path: /reports/{reportName}
+fl_reports_rest_reports_delete:
+  path: /reports_rest/{reportName}
   methods: [DELETE]
   defaults:
     _controller: FL\ReportsBundle\Action\Reports\Rest\Delete:__invoke
@@ -14,8 +14,8 @@ fl_reports_api_reports_delete:
   options:
       expose: true
 
-fl_reports_api_reports_save:
-  path: /reports/{reportName}
+fl_reports_rest_reports_save:
+  path: /reports_rest/{reportName}
   methods: [PUT]
   defaults:
     _controller: FL\ReportsBundle\Action\Reports\Rest\Save:__invoke
@@ -23,8 +23,8 @@ fl_reports_api_reports_save:
   options:
       expose: true
 
-fl_reports_api_reports_build:
-  path: /reports_build
+fl_reports_rest_reports_build:
+  path: /reports_rest_build
   methods: [POST]
   defaults:
     _controller: FL\ReportsBundle\Action\Reports\Rest\Build:__invoke
