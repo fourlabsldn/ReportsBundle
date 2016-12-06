@@ -4,6 +4,8 @@ fl_reports_rest_reports_show:
   defaults:
     _controller: FL\ReportsBundle\Action\Reports\Rest\Show:__invoke
     _format: "json"
+  options:
+      expose: true
 
 fl_reports_rest_reports_delete:
   path: /reports_rest/{reportName}
