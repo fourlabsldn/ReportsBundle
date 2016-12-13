@@ -26,7 +26,7 @@ class ReportResultsStorage implements ReportResultsStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function resultsFromParsedRuleGroup(AbstractParsedRuleGroup $parsedRuleGroup, int $currentPage, int $resultsPerPage): array
+    public function resultsFromParsedRuleGroup(AbstractParsedRuleGroup $parsedRuleGroup, int $currentPage, int $resultsPerPage = null): array
     {
         /** @var ParsedRuleGroup $parsedRuleGroup */
         $dql = $parsedRuleGroup->getDqlString();
@@ -34,8 +34,10 @@ class ReportResultsStorage implements ReportResultsStorageInterface
         $query
             ->setParameters($parsedRuleGroup->getParameters())
             ->setFirstResult($currentPage - 1)
-            ->setMaxResults($resultsPerPage)
         ;
+        if ($resultsPerPage !== null) {
+            $query->setMaxResults($resultsPerPage);
+        }
 
         $paginator = new Paginator($query, $fetchJoinCollection = false);
         $results = [];
@@ -50,7 +52,7 @@ class ReportResultsStorage implements ReportResultsStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function countResultsFromParsedRuleGroup(AbstractParsedRuleGroup $parsedRuleGroup, int $currentPage, int $resultsPerPage): int
+    public function countResultsFromParsedRuleGroup(AbstractParsedRuleGroup $parsedRuleGroup, int $currentPage, int $resultsPerPage = null): int
     {
         /** @var ParsedRuleGroup $parsedRuleGroup */
         $dql = $parsedRuleGroup->getDqlString();
@@ -58,8 +60,10 @@ class ReportResultsStorage implements ReportResultsStorageInterface
         $query
             ->setParameters($parsedRuleGroup->getParameters())
             ->setFirstResult($currentPage - 1)
-            ->setMaxResults($resultsPerPage)
         ;
+        if ($resultsPerPage !== null) {
+            $query->setMaxResults($resultsPerPage);
+        }
 
         $paginator = new Paginator($query, $fetchJoinCollection = false);
 

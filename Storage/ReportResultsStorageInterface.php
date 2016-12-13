@@ -9,18 +9,18 @@ interface ReportResultsStorageInterface
     /**
      * @param AbstractParsedRuleGroup $parsedRuleGroup
      * @param int                     $firstResult
-     * @param int                     $resultsPerPage
+     * @param int|null                $resultsPerPage
      *
      * @return object[]
      */
-    public function resultsFromParsedRuleGroup(AbstractParsedRuleGroup $parsedRuleGroup, int $firstResult, int $resultsPerPage): array;
+    public function resultsFromParsedRuleGroup(AbstractParsedRuleGroup $parsedRuleGroup, int $firstResult, int $resultsPerPage = null): array;
 
     /**
      * @param AbstractParsedRuleGroup $parsedRuleGroup
      * @param int                     $firstResult
-     * @param int                     $resultsPerPage
+     * @param int|null                $resultsPerPage
      *
      * @return int
      */
-    public function countResultsFromParsedRuleGroup(AbstractParsedRuleGroup $parsedRuleGroup, int $firstResult, int $resultsPerPage): int;
+    public function countResultsFromParsedRuleGroup(AbstractParsedRuleGroup $parsedRuleGroup, int $firstResult, int $resultsPerPage = null): int;
 }
