@@ -28,7 +28,7 @@ class ReportResultsStorage implements ReportResultsStorageInterface
      */
     public function resultsFromParsedRuleGroup(AbstractParsedRuleGroup $parsedRuleGroup, int $currentPage, int $resultsPerPage = null): array
     {
-        /** @var ParsedRuleGroup $parsedRuleGroup */
+        /* @var ParsedRuleGroup $parsedRuleGroup */
         $dql = $parsedRuleGroup->getDqlString();
         $query = $this->entityManager->createQuery($dql);
         $query
@@ -54,7 +54,7 @@ class ReportResultsStorage implements ReportResultsStorageInterface
      */
     public function countResultsFromParsedRuleGroup(AbstractParsedRuleGroup $parsedRuleGroup, int $currentPage, int $resultsPerPage = null): int
     {
-        /** @var ParsedRuleGroup $parsedRuleGroup */
+        /* @var ParsedRuleGroup $parsedRuleGroup */
         $dql = $parsedRuleGroup->getDqlString();
         $query = $this->entityManager->createQuery($dql);
         $query
