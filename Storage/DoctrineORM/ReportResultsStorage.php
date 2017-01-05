@@ -26,20 +26,30 @@ class ReportResultsStorage implements ReportResultsStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function resultsFromParsedRuleGroup(AbstractParsedRuleGroup $parsedRuleGroup, int $currentPage, int $resultsPerPage = null): array
+    public function resultsFromParsedRuleGroup(AbstractParsedRuleGroup $parsedRuleGroup, int $currentPage = null, int $resultsPerPage = null): array
     {
+        if (
+            $resultsPerPage !== null &&
+            $resultsPerPage !== null &&
+            ($currentPage === 0 || $resultsPerPage === 0)
+        ) {
+            return [];
+        }
+
         /* @var ParsedRuleGroup $parsedRuleGroup */
         $dql = $parsedRuleGroup->getDqlString();
         $query = $this->entityManager->createQuery($dql);
-        $query
-            ->setParameters($parsedRuleGroup->getParameters())
-            ->setFirstResult($currentPage - 1)
-        ;
-        if ($resultsPerPage !== null) {
-            $query->setMaxResults($resultsPerPage);
+        $query->setParameters($parsedRuleGroup->getParameters());
+
+        if (
+            $resultsPerPage !== null &&
+            $currentPage !== null
+        ) {
+            $query->setMaxResults($resultsPerPage)
+                ->setFirstResult(($currentPage - 1) * $resultsPerPage);
         }
 
-        $paginator = new Paginator($query, $fetchJoinCollection = false);
+        $paginator = new Paginator($query, $fetchJoinCollection = true);
         $results = [];
         // return an array, not a Paginator
         foreach ($paginator as $result) {
@@ -52,20 +62,14 @@ class ReportResultsStorage implements ReportResultsStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function countResultsFromParsedRuleGroup(AbstractParsedRuleGroup $parsedRuleGroup, int $currentPage, int $resultsPerPage = null): int
+    public function countResultsFromParsedRuleGroup(AbstractParsedRuleGroup $parsedRuleGroup): int
     {
         /* @var ParsedRuleGroup $parsedRuleGroup */
         $dql = $parsedRuleGroup->getDqlString();
         $query = $this->entityManager->createQuery($dql);
-        $query
-            ->setParameters($parsedRuleGroup->getParameters())
-            ->setFirstResult($currentPage - 1)
-        ;
-        if ($resultsPerPage !== null) {
-            $query->setMaxResults($resultsPerPage);
-        }
+        $query->setParameters($parsedRuleGroup->getParameters());
 
-        $paginator = new Paginator($query, $fetchJoinCollection = false);
+        $paginator = new Paginator($query, $fetchJoinCollection = true);
 
         return $paginator->count();
     }

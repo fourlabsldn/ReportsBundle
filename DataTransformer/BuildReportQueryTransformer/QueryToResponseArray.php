@@ -73,7 +73,7 @@ class QueryToResponseArray
         $serializedResults = $this->serializedResults($rawResults, $report);
         $columnsHumanReadable = $this->columnsHumanReadable($report, $buildReportQuery);
 
-        $totalResults = $this->reportResultsStorage->countResultsFromParsedRuleGroup($parsedRuleGroup, $currentPage, $resultsPerPage);
+        $totalResults = $this->reportResultsStorage->countResultsFromParsedRuleGroup($parsedRuleGroup);
         $totalPages = ceil($totalResults / $resultsPerPage);
 
         $responseArray = [
