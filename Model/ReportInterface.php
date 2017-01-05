@@ -5,9 +5,9 @@ namespace FL\ReportsBundle\Model;
 interface ReportInterface
 {
     /**
-     * @return int
+     * @return int|null
      */
-    public function getId(): int;
+    public function getId();
 
     /**
      * @return string

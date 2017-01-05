@@ -5,7 +5,7 @@ namespace FL\ReportsBundle\Model;
 class Report implements ReportInterface
 {
     /**
-     * @var int
+     * @var int|null
      */
     protected $id;
 
@@ -42,7 +42,7 @@ class Report implements ReportInterface
     /**
      * {@inheritdoc}
      */
-    public function getId(): int
+    public function getId()
     {
         return $this->id;
     }

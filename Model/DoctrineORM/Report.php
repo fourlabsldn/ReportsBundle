@@ -7,7 +7,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 use FL\ReportsBundle\Model\Report as BaseReport;
 
 /**
- * @ORM\MappedSuperclass()
+ * @ORM\MappedSuperclass
  */
 class Report extends BaseReport
 {
@@ -62,12 +62,4 @@ class Report extends BaseReport
      * @ORM\Column(type="array", nullable=true)
      */
     protected $sortColumns = [];
-
-    /**
-     * @return int
-     */
-    public function getId(): int
-    {
-        return $this->id;
-    }
 }
