@@ -22,32 +22,31 @@ class Report extends BaseReport
     /**
      * @var string
      * @ORM\Column(type="string", length=128, nullable=false)
-     * @Assert\NotBlank()
-     * @Assert\Length(min="3", max="128")
+     * @Assert\NotBlank
+     * @Assert\Length(max="128")
      */
     protected $reportName = '';
 
     /**
      * @var string
      * @ORM\Column(type="string", length=256, nullable=false)
-     * @Assert\NotBlank()
-     * @Assert\Length(min="3", max="256")
+     * @Assert\NotBlank
+     * @Assert\Length(max="256")
      */
     protected $reportBuilderId = '';
 
     /**
      * @var string
      * @ORM\Column(type="string", length=256, nullable=false)
-     * @Assert\NotBlank()
-     * @Assert\Length(min="3", max="256")
+     * @Assert\NotBlank
+     * @Assert\Length(max="256")
      */
     protected $reportBuilderHumanReadableName = '';
 
     /**
      * @var string
      * @ORM\Column(type="text", nullable=false)
-     * @Assert\NotBlank()
-     * @Assert\Length(min="3")
+     * @Assert\NotBlank
      */
     protected $rulesJsonString = '';
 
