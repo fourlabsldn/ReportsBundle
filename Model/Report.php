@@ -124,12 +124,7 @@ class Report implements ReportInterface
      */
     public function getColumnsAsJsonArray(): string
     {
-        $json = '[';
-        foreach ($this->columns as $column) {
-            $json .= sprintf('"%s", ', $column);
-        }
-
-        return rtrim($json, ', ').']';
+        return json_encode(array_values($this->columns));
     }
 
     /**
