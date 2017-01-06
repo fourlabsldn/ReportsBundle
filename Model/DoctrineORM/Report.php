@@ -62,4 +62,3 @@ class Report extends BaseReport
      */
     protected $sortColumns = [];
 }
-
