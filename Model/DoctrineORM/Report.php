@@ -52,13 +52,14 @@ class Report extends BaseReport
 
     /**
      * @var string[]
-     * @ORM\Column(type="array", nullable=true)
+     * @ORM\Column(type="json_array", nullable=true)
      */
     protected $columns = [];
 
     /**
      * @var string[]
-     * @ORM\Column(type="array", nullable=true)
+     * @ORM\Column(type="json_array", nullable=true)
      */
     protected $sortColumns = [];
 }
+
