@@ -124,7 +124,7 @@ class Report implements ReportInterface
      */
     public function getColumnsAsJsonArray(): string
     {
-        return json_encode(array_values($this->columns));
+        return json_encode(array_values($this->getColumns()));
     }
 
     /**
@@ -132,7 +132,7 @@ class Report implements ReportInterface
      */
     public function getColumns(): array
     {
-        return $this->columns;
+        return $this->columns ?? [];
     }
 
     /**
@@ -173,7 +173,7 @@ class Report implements ReportInterface
     public function getSortColumnsAsJsonObject(): string
     {
         $json = '{';
-        foreach ($this->sortColumns as $sortColumn => $order) {
+        foreach ($this->getSortColumns() as $sortColumn => $order) {
             $json .= sprintf(
                 '"%s": "%s", ',
                 $sortColumn,
