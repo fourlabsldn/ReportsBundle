@@ -189,7 +189,7 @@ class Report implements ReportInterface
      */
     public function getSortColumns(): array
     {
-        return $this->sortColumns;
+        return $this->sortColumns ?? [];
     }
 
     /**
