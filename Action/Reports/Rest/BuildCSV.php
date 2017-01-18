@@ -101,10 +101,9 @@ class BuildCSV
             $request->getSchemeAndHttpHost().$request->getRequestUri()
         ));
 
-
         // do not use CsvEncoder::FORMAT -- this class was introduced in Symfony 3.2
         $response = new Response($this->csvEncoder->encode($responseArray, 'csv'), 200);
-        $disposition  = $response->headers->makeDisposition(
+        $disposition = $response->headers->makeDisposition(
             ResponseHeaderBag::DISPOSITION_ATTACHMENT,
             $report->getReportName(), // name
             'report.csv' // fallback name
