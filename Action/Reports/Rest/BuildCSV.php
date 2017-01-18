@@ -4,6 +4,8 @@ namespace FL\ReportsBundle\Action\Reports\Rest;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\RouterInterface;
 use FL\QBJSParserBundle\Service\JavascriptBuilders;
 use FL\ReportsBundle\DataTransformer\BuildReportQueryTransformer\QueryToResponseArray;
@@ -11,8 +13,9 @@ use FL\ReportsBundle\DataTransformer\RequestTransformer\RequestToPaginationQuery
 use FL\ReportsBundle\DataTransformer\RequestTransformer\RequestToReport;
 use FL\ReportsBundle\DataTransformer\RequestTransformer\RequestTransformationException;
 use FL\ReportsBundle\DataObjects\BuildReportQuery;
+use Symfony\Component\Serializer\Encoder\EncoderInterface;
 
-class Build
+class BuildCSV
 {
     /**
      * @var RequestToReport
@@ -40,32 +43,40 @@ class Build
     protected $router;
 
     /**
+     * @var EncoderInterface
+     */
+    protected $csvEncoder;
+
+    /**
      * @param RequestToReport          $requestToReportTransformer
      * @param RequestToPaginationQuery $requestToPaginationQuery
      * @param QueryToResponseArray     $queryToResponseArray
      * @param JavascriptBuilders       $javascriptBuilders
      * @param RouterInterface          $router
+     * @param EncoderInterface         $csvEncoder
      */
     public function __construct(
         RequestToReport $requestToReportTransformer,
         RequestToPaginationQuery $requestToPaginationQuery,
         QueryToResponseArray $queryToResponseArray,
         JavascriptBuilders $javascriptBuilders,
-        RouterInterface $router
+        RouterInterface $router,
+        EncoderInterface $csvEncoder
     ) {
         $this->requestToReportTransformer = $requestToReportTransformer;
         $this->requestToPaginationQuery = $requestToPaginationQuery;
         $this->queryToResponseArray = $queryToResponseArray;
         $this->javascriptBuilders = $javascriptBuilders;
         $this->router = $router;
+        $this->csvEncoder = $csvEncoder;
     }
 
     /**
      * @param Request $request
      *
-     * @return JsonResponse
+     * @return Response
      */
-    public function __invoke(Request $request): JsonResponse
+    public function __invoke(Request $request): Response
     {
         try {
             $report = $this->requestToReportTransformer->fromRestBuildRequest($request);
@@ -90,6 +101,17 @@ class Build
             $request->getSchemeAndHttpHost().$request->getRequestUri()
         ));
 
-        return new JsonResponse($responseArray, 200);
+
+        // do not use CsvEncoder::FORMAT -- this class was introduced in Symfony 3.2
+        $response = new Response($this->csvEncoder->encode($responseArray, 'csv'), 200);
+        $disposition  = $response->headers->makeDisposition(
+            ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+            $report->getReportName(), // name
+            'report.csv' // fallback name
+        );
+        $response->headers->set('Content-Disposition', $disposition);
+        $response->headers->set('Content-Type', 'text/csv');
+
+        return $response;
     }
 }

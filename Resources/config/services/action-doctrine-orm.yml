@@ -40,3 +40,12 @@ services:
       - "@fl_reports.data_transformer.build_report_query.to_response_array.doctrine_orm"
       - "@fl_qbjs_parser.javascript_builders"
       - "@router"
+  'FL\ReportsBundle\Action\Reports\Rest\BuildCSV':
+    class: FL\ReportsBundle\Action\Reports\Rest\BuildCSV
+    arguments:
+      - "@fl_reports.data_transformer.request_to_report.doctrine_orm"
+      - "@fl_reports.data_transformer.request.to_pagination_query"
+      - "@fl_reports.data_transformer.build_report_query.to_response_array.doctrine_orm"
+      - "@fl_qbjs_parser.javascript_builders"
+      - "@router"
+      - "@fl_reports.csv_encoder_service"

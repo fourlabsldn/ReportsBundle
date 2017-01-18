@@ -63,11 +63,13 @@ class QueryToResponseArray
     }
 
     /**
+     * Return value is suitable to be serialized into REST JSON, and used as an HTTP response.
+     *
      * @param BuildReportQuery $buildReportQuery
      *
      * @return array
      */
-    public function defaultTransform(BuildReportQuery $buildReportQuery): array
+    public function transformToRestArray(BuildReportQuery $buildReportQuery): array
     {
         $parsedRuleGroup = $this->jsonQueryParser->parseJsonString(
             $buildReportQuery->getReport()->getRulesJsonString(),
@@ -133,6 +135,44 @@ class QueryToResponseArray
         }
 
         return $responseArray;
+    }
+
+    /**
+     * Return value is suitable to be serialized into a CSV file, and used as an HTTP response.
+     *
+     * @param BuildReportQuery $buildReportQuery
+     *
+     * @return array
+     */
+    public function transformToTableArray(BuildReportQuery $buildReportQuery): array
+    {
+        $parsedRuleGroup = $this->jsonQueryParser->parseJsonString(
+            $buildReportQuery->getReport()->getRulesJsonString(),
+            $buildReportQuery->getReportBuilder()->getClassName(),
+            $buildReportQuery->getReport()->getSortColumns()
+        );
+        $currentPage = $buildReportQuery->getPaginationQuery()->getCurrentPage();
+        $resultsPerPage = $buildReportQuery->getPaginationQuery()->getMaxResultsPerPage();
+        $rawResults = $this->reportResultsStorage->resultsFromParsedRuleGroup($parsedRuleGroup, $currentPage, $resultsPerPage);
+
+        $report = $buildReportQuery->getReport();
+        $serializedResults = $this->serializedResults($rawResults, $report);
+        $columnsHumanReadable = $this->columnsHumanReadable($report, $buildReportQuery);
+
+        $totalResults = $this->reportResultsStorage->countResultsFromParsedRuleGroup($parsedRuleGroup);
+        $totalPages = ceil($totalResults / $resultsPerPage);
+
+        return array_merge(
+            [$columnsHumanReadable],
+            $serializedResults
+//            [ // cannot use yet, because they don't have the correct keys
+//                sprintf('%s: %d', $this->translator->trans('Current Page'), $currentPage),
+//                sprintf('%s: %d', $this->translator->trans('Max Results Per Page'), $resultsPerPage),
+//                sprintf('%s: %d', $this->translator->trans('Results In This Page'), count($serializedResults)),
+//                sprintf('%s: %d', $this->translator->trans('Total Results'), $totalResults),
+//                sprintf('%s: %d', $this->translator->trans('Total Pages'), $totalPages),
+//            ]
+        );
     }
 
     /**

@@ -33,3 +33,11 @@ fl_reports_rest_reports_build:
     _format: "json"
   options:
       expose: true
+
+fl_reports_rest_reports_build_csv:
+  path: /reports_rest_build_csv
+  methods: [POST]
+  defaults:
+    _controller: FL\ReportsBundle\Action\Reports\Rest\BuildCSV:__invoke
+  options:
+      expose: true

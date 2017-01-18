@@ -23,6 +23,8 @@ class FLReportsExtension extends Extension
         $config = $this->processConfiguration($configuration, $configs);
 
         $container->setParameter('fl_reports.report_class', $config['report_class']);
+        $container->setParameter('fl_reports.csv_encoder_service', $config['csv_encoder_service']);
+        $container->setAlias('fl_reports.csv_encoder_service', $config['csv_encoder_service']);
 
         $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services.yml');
