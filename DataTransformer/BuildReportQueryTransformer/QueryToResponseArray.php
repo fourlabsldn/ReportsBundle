@@ -12,6 +12,7 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\PropertyAccess\Exception\UnexpectedTypeException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use FL\ReportsBundle\DataObjects\BuildReportQuery;
+use Symfony\Component\Translation\TranslatorInterface;
 
 class QueryToResponseArray
 {
@@ -36,21 +37,29 @@ class QueryToResponseArray
     protected $dispatcher;
 
     /**
+     * @var TranslatorInterface
+     */
+    protected $translator;
+
+    /**
      * @param JsonQueryParserInterface      $jsonQueryParser
      * @param \HTMLPurifier                 $htmlPurifier
      * @param ReportResultsStorageInterface $reportResultsStorage
      * @param EventDispatcherInterface      $dispatcher
+     * @param TranslatorInterface           $translator
      */
     public function __construct(
         JsonQueryParserInterface $jsonQueryParser,
         \HTMLPurifier $htmlPurifier,
         ReportResultsStorageInterface $reportResultsStorage,
-        EventDispatcherInterface $dispatcher
+        EventDispatcherInterface $dispatcher,
+        TranslatorInterface $translator
     ) {
         $this->jsonQueryParser = $jsonQueryParser;
         $this->htmlPurifier = $htmlPurifier;
         $this->reportResultsStorage = $reportResultsStorage;
         $this->dispatcher = $dispatcher;
+        $this->translator = $translator;
     }
 
     /**
@@ -189,6 +198,14 @@ class QueryToResponseArray
             } else {
                 $value = $value->format('d-m-Y H:i');
             }
+        }
+
+        if ($value === true) {
+            $value = $this->translator->trans('Yes');
+        }
+
+        if ($value === false) {
+            $value = $this->translator->trans('No');
         }
 
         return (string) $value;
