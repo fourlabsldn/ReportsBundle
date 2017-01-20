@@ -138,6 +138,53 @@ class QueryToResponseArray
     }
 
     /**
+     * @param BuildReportQuery $buildReportQuery
+     *
+     * @return array
+     */
+    public function transformToResultsArray(BuildReportQuery $buildReportQuery): array
+    {
+        $parsedRuleGroup = $this->jsonQueryParser->parseJsonString(
+            $buildReportQuery->getReport()->getRulesJsonString(),
+            $buildReportQuery->getReportBuilder()->getClassName(),
+            $buildReportQuery->getReport()->getSortColumns()
+        );
+        $currentPage = $buildReportQuery->getPaginationQuery()->getCurrentPage();
+        $resultsPerPage = $buildReportQuery->getPaginationQuery()->getMaxResultsPerPage();
+        $rawResults = $this->reportResultsStorage->resultsFromParsedRuleGroup($parsedRuleGroup, $currentPage, $resultsPerPage);
+
+        $report = $buildReportQuery->getReport();
+        $serializedResults = $this->serializedResults($rawResults, $report);
+        $columnsHumanReadable = $this->columnsHumanReadable($report, $buildReportQuery);
+
+        $totalResults = $this->reportResultsStorage->countResultsFromParsedRuleGroup($parsedRuleGroup);
+        $totalPages = ceil($totalResults / $resultsPerPage);
+
+        $resultsArray = [
+            'data' => [
+                'header' => $columnsHumanReadable,
+                'results' => $serializedResults,
+            ],
+            'state' => [
+                'currentPage' => $currentPage,
+                'maxResultsPerPage' => $resultsPerPage,
+                'resultsInThisPage' => count($serializedResults),
+                'totalResults' => $totalResults,
+                'totalPages' => $totalPages,
+            ],
+        ];
+
+        if ($currentPage > 1) {
+            $resultsArray['previousPage'] = $currentPage - 1;
+        }
+        if ($currentPage < $totalPages) {
+            $resultsArray['nextPage'] = $currentPage + 1;
+        }
+
+        return $resultsArray;
+    }
+
+    /**
      * Return value is suitable to be serialized into a CSV file, and used as an HTTP response.
      *
      * @param BuildReportQuery $buildReportQuery
