@@ -2,7 +2,6 @@
 
 namespace FL\ReportsBundle\DataTransformer;
 
-use FL\QBJSParserBundle\Model\Builder\ResultColumn;
 use FL\QBJSParserBundle\Service\JsonQueryParserInterface;
 use FL\ReportsBundle\Event\ResultColumnCreatedEvent;
 use FL\ReportsBundle\Model\ReportInterface;
@@ -14,6 +13,9 @@ use Symfony\Component\PropertyAccess\PropertyAccess;
 use FL\ReportsBundle\DataObjects\BuildReportQuery;
 use Symfony\Component\Translation\TranslatorInterface;
 
+/**
+ * Converts @see BuildReportQuery into results that can be used in controllers.
+ */
 class BuildQueryToResults
 {
     /**
@@ -63,43 +65,54 @@ class BuildQueryToResults
     }
 
     /**
+     * Return value is suitable to be put into an HTML template, and used as an HTTP response.
+     *
      * @param BuildReportQuery $buildReportQuery
+     * @param bool $allResults (if true, ignores the PaginationQuery inside BuildReportQuery)
      *
      * @return array
      */
-    public function transformToResultsArray(BuildReportQuery $buildReportQuery): array
+    public function transformToResultsArray(BuildReportQuery $buildReportQuery, bool $allResults = false): array
     {
+        $report = $buildReportQuery->getReport();
+        $columnsHumanReadable = $this->resolveColumnsHumanReadable($report, $buildReportQuery);
+        $currentPage = $buildReportQuery->getPaginationQuery()->getCurrentPage();
+        $resultsPerPage = $buildReportQuery->getPaginationQuery()->getMaxResultsPerPage();
+
+        $resultsArray = [
+            'data' => [
+                'header' => $columnsHumanReadable,
+                'results' => [],
+            ],
+            'state' => [
+                'currentPage' => $currentPage,
+                'maxResultsPerPage' => $resultsPerPage,
+                'resultsInThisPage' => 0,
+                'totalResults' => 0,
+                'totalPages' => 0,
+            ],
+        ];
+
         $parsedRuleGroup = $this->jsonQueryParser->parseJsonString(
             $buildReportQuery->getReport()->getRulesJsonString(),
             $buildReportQuery->getReportBuilder()->getClassName(),
             $buildReportQuery->getReport()->getSortColumns()
         );
 
-        $currentPage = $buildReportQuery->getPaginationQuery()->getCurrentPage();
-        $resultsPerPage = $buildReportQuery->getPaginationQuery()->getMaxResultsPerPage();
-        $rawResults = $this->reportResultsStorage->resultsFromParsedRuleGroup($parsedRuleGroup, $currentPage, $resultsPerPage);
+        if ($allResults) {
+            $rawResults = $this->reportResultsStorage->resultsFromParsedRuleGroup($parsedRuleGroup, null, null);
+        } else {
+            $rawResults = $this->reportResultsStorage->resultsFromParsedRuleGroup($parsedRuleGroup, $currentPage, $resultsPerPage);
+        }
 
-        $report = $buildReportQuery->getReport();
-        $serializedResults = $this->serializedResults($rawResults, $report);
-        $columnsHumanReadable = $this->columnsHumanReadable($report, $buildReportQuery);
-
+        $objectResultsToArray = $this->transformObjectResultsToArray($rawResults, $report);
         $totalResults = $this->reportResultsStorage->countResultsFromParsedRuleGroup($parsedRuleGroup);
         $totalPages = ceil($totalResults / $resultsPerPage);
 
-        $resultsArray = [
-            'data' => [
-                'header' => $columnsHumanReadable,
-                'results' => $serializedResults,
-            ],
-            'state' => [
-                'currentPage' => $currentPage,
-                'maxResultsPerPage' => $resultsPerPage,
-                'resultsInThisPage' => count($serializedResults),
-                'totalResults' => $totalResults,
-                'totalPages' => $totalPages,
-            ],
-        ];
-
+        $resultsArray['data']['results'] = $objectResultsToArray;
+        $resultsArray['state']['resultsInThisPage'] = count($objectResultsToArray);
+        $resultsArray['state']['totalResults'] = $totalResults;
+        $resultsArray['state']['totalPages'] = $totalPages;
         $resultsArray['state']['previousPage'] = ($currentPage > 1) ? ($currentPage - 1) : null;
         $resultsArray['state']['nextPage'] = ($currentPage < $totalPages) ? ($currentPage + 1) : null;
 
@@ -115,52 +128,35 @@ class BuildQueryToResults
      */
     public function transformToTableArray(BuildReportQuery $buildReportQuery): array
     {
-        $parsedRuleGroup = $this->jsonQueryParser->parseJsonString(
-            $buildReportQuery->getReport()->getRulesJsonString(),
-            $buildReportQuery->getReportBuilder()->getClassName(),
-            $buildReportQuery->getReport()->getSortColumns()
-        );
-        $currentPage = $buildReportQuery->getPaginationQuery()->getCurrentPage();
-        $resultsPerPage = $buildReportQuery->getPaginationQuery()->getMaxResultsPerPage();
-        $rawResults = $this->reportResultsStorage->resultsFromParsedRuleGroup($parsedRuleGroup, $currentPage, $resultsPerPage);
-
-        $report = $buildReportQuery->getReport();
-        $serializedResults = $this->serializedResults($rawResults, $report);
-        $columnsHumanReadable = $this->columnsHumanReadable($report, $buildReportQuery);
-
-        $totalResults = $this->reportResultsStorage->countResultsFromParsedRuleGroup($parsedRuleGroup);
-        $totalPages = ceil($totalResults / $resultsPerPage);
+        $resultsArray = $this->transformToResultsArray($buildReportQuery, true);
 
         return array_merge(
-            [$columnsHumanReadable],
-            $serializedResults
-//            [ // cannot use yet, because they don't have the correct keys
-//                sprintf('%s: %d', $this->translator->trans('Current Page'), $currentPage),
-//                sprintf('%s: %d', $this->translator->trans('Max Results Per Page'), $resultsPerPage),
-//                sprintf('%s: %d', $this->translator->trans('Results In This Page'), count($serializedResults)),
-//                sprintf('%s: %d', $this->translator->trans('Total Results'), $totalResults),
-//                sprintf('%s: %d', $this->translator->trans('Total Pages'), $totalPages),
-//            ]
+            [$buildReportQuery->getReport()->getColumns()], // machine named columns
+            [$resultsArray['header']], // human readable columns
+            $resultsArray['results'] // result rows
         );
     }
 
     /**
-     * @param object[]        $results
+     * Explores the object graph and creates an array,
+     * where each object is a row.
+     *
+     * @param object[]        $rawResults
      * @param ReportInterface $report
      *
      * @return array
      */
-    protected function serializedResults(array $results, ReportInterface $report): array
+    protected function transformObjectResultsToArray(array $rawResults, ReportInterface $report): array
     {
         $accessor = PropertyAccess::createPropertyAccessor();
 
-        $serializedResults = [];
+        $objectResultsToArray = [];
 
-        foreach ($results as $key => $result) { // go through a single page
-            $serializedResults[$key] = []; // rows still exist, even if there are no columns
+        foreach ($rawResults as $key => $result) { // go through a single page
+            $objectResultsToArray[$key] = []; // rows still exist, even if there are no columns
             foreach ($report->getColumns() as $column) {
                 try {
-                    $columnValue = $this->valueToString($accessor->getValue($result, $column));
+                    $columnValue = $this->transformValueToString($accessor->getValue($result, $column));
                 } catch (UnexpectedTypeException $exception) { // when accessing several levels deep, one of the properties might be null
                     $columnValue = '';
                 }
@@ -169,38 +165,41 @@ class BuildQueryToResults
                     $result,
                     $reportResultColumn
                 ));
-                $serializedResults[$key][$column] = $this->htmlPurifier->purify($reportResultColumn->getColumnValue());
+                $objectResultsToArray[$key][$column] = $this->htmlPurifier->purify($reportResultColumn->getColumnValue());
             }
         }
 
-        return $serializedResults;
+        return $objectResultsToArray;
     }
 
     /**
+     * Resolves human readable column names from the current configuration,
+     * according to a report's machine name columns.
+     *
      * @param ReportInterface  $report
      * @param BuildReportQuery $buildReportQuery
      *
      * @return array
      */
-    protected function columnsHumanReadable(ReportInterface $report, BuildReportQuery $buildReportQuery): array
+    protected function resolveColumnsHumanReadable(ReportInterface $report, BuildReportQuery $buildReportQuery): array
     {
-        /** @var ResultColumn $column */
         $columnsHumanReadable = [];
         foreach ($report->getColumns() as $column) {
             if ($columnHumanReadable = $buildReportQuery->getReportBuilder()->getHumanReadableWithMachineName($column)) {
-                $columnsHumanReadable[] = $columnHumanReadable;
+                $columnsHumanReadable[$column] = $columnHumanReadable;
             }
         }
 
         return $columnsHumanReadable;
     }
+    
 
     /**
      * @param mixed $value
      *
      * @return string
      */
-    protected function valueToString($value): string
+    protected function transformValueToString($value): string
     {
         if ($value instanceof \DateTime || $value instanceof  \DateTimeImmutable) {
             if ($value->format('H:i') === '00:00') {

@@ -23,26 +23,18 @@ class BuildReportQuery
     protected $reportBuilder;
 
     /**
-     * @var string
-     */
-    protected $baseUrl;
-
-    /**
      * @param ReportInterface $report
      * @param PaginationQuery $paginationQuery
      * @param Builder         $reportBuilder
-     * @param string          $baseUrl
      */
     public function __construct(
         ReportInterface $report,
         PaginationQuery $paginationQuery,
-        Builder $reportBuilder,
-        string $baseUrl
+        Builder $reportBuilder
     ) {
         $this->report = $report;
         $this->paginationQuery = $paginationQuery;
         $this->reportBuilder = $reportBuilder;
-        $this->baseUrl = $baseUrl;
     }
 
     /**
@@ -67,13 +59,5 @@ class BuildReportQuery
     public function getReportBuilder(): Builder
     {
         return $this->reportBuilder;
-    }
-
-    /**
-     * @return string
-     */
-    public function getBaseUrl(): string
-    {
-        return $this->baseUrl;
     }
 }
