@@ -57,8 +57,7 @@ class ReportResultsStorage implements ReportResultsStorageInterface
                 ->setFirstResult(($currentPage - 1) * $resultsPerPage);
         }
 
-
-        $idColumnName = SelectPartialParser::OBJECT_WORD . '_id';
+        $idColumnName = sprintf('%s_id', SelectPartialParser::OBJECT_WORD);
         foreach ($query->getResult(Query::HYDRATE_SCALAR) as $result) {
             $resultIds[] = $result[$idColumnName];
         }
@@ -78,7 +77,7 @@ class ReportResultsStorage implements ReportResultsStorageInterface
             $idsToObjects[$object->getId()] = $object;
         }
 
-        $sortedObjects =  array_map(function ($id) use ($idsToObjects) {
+        $sortedObjects = array_map(function ($id) use ($idsToObjects) {
             return $idsToObjects[$id];
         }, $resultIds);
 
