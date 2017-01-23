@@ -40,13 +40,17 @@ class ReportResultsStorage implements ReportResultsStorageInterface
 
         // Grouping by Id lets us paginate without the need for a paginator
         // And since Ids are the only thing we need, it's better for performance
-        $dql = sprintf(
-            '%s GROUP BY %s.id',
-            $parsedRuleGroup->getQueryString(),
+        $groupByPartialDql = sprintf(
+            'GROUP BY %s.id',
             SelectPartialParser::OBJECT_WORD
         );
 
-        $query = $this->entityManager->createQuery($dql);
+        // GROUP BY must be placed before ORDER BY
+        $dqlWithGroupBy = $parsedRuleGroup->copyWithReplacedString('ORDER BY', $groupByPartialDql . ' ORDER BY', $groupByPartialDql)
+            ->getQueryString();
+
+        // Create Query
+        $query = $this->entityManager->createQuery($dqlWithGroupBy);
         $query->setParameters($parsedRuleGroup->getParameters());
 
         if (
@@ -57,21 +61,35 @@ class ReportResultsStorage implements ReportResultsStorageInterface
                 ->setFirstResult(($currentPage - 1) * $resultsPerPage);
         }
 
+        // Use query to get resultIds
         $idColumnName = sprintf('%s_id', SelectPartialParser::OBJECT_WORD);
+        $resultIds = [];
         foreach ($query->getResult(Query::HYDRATE_SCALAR) as $result) {
             $resultIds[] = $result[$idColumnName];
         }
+        if (count($resultIds) === 0) {
+            return [];
+        }
 
+        // We are using resultIds because this means we don't have
+        // to hydrate the complete object graph and its associations.
+        // If those associations are OneToMany or ManyToMany,
+        // there would have been a serious performance degradation.
         $qb = $this->entityManager->createQueryBuilder();
-        $qb->select('object')
+        $qb->select('object, created_by')
             ->from($parsedRuleGroup->getClassName(), 'object')
             ->where('object.id IN (:ids)')
-            ->setParameter('ids', $resultIds);
+            ->setParameter('ids', $resultIds)
+            ->leftJoin('object.createdBy', 'created_by');
 
         // @todo insert event for better hydration
         // subscribers should only add Joins to this, not where/sort/group/etc.
 
+        // Query::HYDRATE_SIMPLEOBJECT does not hydrate OneToOne/ManyToOne associations.
+        // If performance of this method becomes a problem, consider
+        // adapting to ->getResult(Query::HYDRATE_SCALAR).
         $unsortedObjects = $qb->getQuery()->getResult();
+
         $idsToObjects = [];
         foreach ($unsortedObjects as $object) {
             $idsToObjects[$object->getId()] = $object;
@@ -89,11 +107,12 @@ class ReportResultsStorage implements ReportResultsStorageInterface
      */
     public function countResultsFromParsedRuleGroup(AbstractParsedRuleGroup $parsedRuleGroup): int
     {
-        /* @var ParsedRuleGroup $parsedRuleGroup */
         $dql = $parsedRuleGroup->getQueryString();
         $query = $this->entityManager->createQuery($dql);
         $query->setParameters($parsedRuleGroup->getParameters());
 
+        // using Paginator lets us easily know the total rows in the database
+        // without manually modifying the original query
         $paginator = new Paginator($query, $fetchJoinCollection = true);
 
         return $paginator->count();
