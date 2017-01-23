@@ -76,11 +76,10 @@ class ReportResultsStorage implements ReportResultsStorageInterface
         // If those associations are OneToMany or ManyToMany,
         // there would have been a serious performance degradation.
         $qb = $this->entityManager->createQueryBuilder();
-        $qb->select('object, created_by')
+        $qb->select('object')
             ->from($parsedRuleGroup->getClassName(), 'object')
             ->where('object.id IN (:ids)')
-            ->setParameter('ids', $resultIds)
-            ->leftJoin('object.createdBy', 'created_by');
+            ->setParameter('ids', $resultIds);
 
         // @todo insert event for better hydration
         // subscribers should only add Joins to this, not where/sort/group/etc.
