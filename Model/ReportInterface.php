@@ -102,6 +102,13 @@ interface ReportInterface
     public function getSortColumns(): array;
 
     /**
+     * @param array $columns
+     *
+     * @return ReportInterface
+     */
+    public function setColumns(array $columns): ReportInterface;
+
+    /**
      * @param string $sortColumn
      * @param string $order
      *
@@ -120,4 +127,11 @@ interface ReportInterface
      * @return ReportInterface
      */
     public function clearSortColumns(): ReportInterface;
+
+    /**
+     * @param array $sortColumns
+     *
+     * @return ReportInterface
+     */
+    public function setSortColumns(array $sortColumns): ReportInterface;
 }

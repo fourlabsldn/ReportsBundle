@@ -48,7 +48,7 @@ class Report extends BaseReport
      * @ORM\Column(type="text", nullable=false)
      * @Assert\NotBlank
      */
-    protected $rulesJsonString = '';
+    protected $rulesJsonString = '{"condition":"AND","rules":[],"valid":true}';
 
     /**
      * @var string[]

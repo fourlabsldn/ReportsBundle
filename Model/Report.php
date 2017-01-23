@@ -27,7 +27,7 @@ class Report implements ReportInterface
     /**
      * @var string
      */
-    protected $rulesJsonString = '';
+    protected $rulesJsonString = '{"condition":"AND","rules":[],"valid":true}';
 
     /**
      * @var string[]
@@ -195,6 +195,20 @@ class Report implements ReportInterface
     /**
      * {@inheritdoc}
      */
+    public function setColumns(array $columns): ReportInterface
+    {
+        $this->clearColumns();
+
+        foreach ($columns as $column) {
+            $this->addColumn($column);
+        }
+
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function addSortColumn(string $sortColumn, string $order): ReportInterface
     {
         if ($order !== 'ASC' && $order !== 'DESC') {
@@ -223,6 +237,20 @@ class Report implements ReportInterface
     public function clearSortColumns(): ReportInterface
     {
         $this->sortColumns = [];
+
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setSortColumns(array $sortColumns): ReportInterface
+    {
+        $this->clearSortColumns();
+
+        foreach ($sortColumns as $column => $order) {
+            $this->addSortColumn($column, $order);
+        }
 
         return $this;
     }
