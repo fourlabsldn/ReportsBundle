@@ -1,0 +1,9 @@
+services:
+  fl_reports.data_transformer.doctrine_orm.build_query_to_results:
+    class: FL\ReportsBundle\DataTransformer\BuildQueryToResults
+    arguments:
+      - "@fl_qbjs_parser.json_query_parser.doctrine_orm_parser"
+      - "@exercise_html_purifier.default"
+      - "@fl_reports.storage.doctrine_orm.report_results"
+      - "@event_dispatcher"
+      - "@translator"

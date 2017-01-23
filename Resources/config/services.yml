@@ -1,5 +1,4 @@
 imports:
-    # Include this manually. Depending on your ORM/ODM/etc.
-    # - { resource: 'services/action-doctrine-orm.yml' }
-    - { resource: 'services/data-transformer.yml' }
-    - { resource: 'services/storage.yml' }
+    # If there are every implementations for other ORMs/ODMs these will have to be included manually.
+    - { resource: 'services/doctrine_orm/data-transformer.yml' }
+    - { resource: 'services/doctrine_orm/storage.yml' }

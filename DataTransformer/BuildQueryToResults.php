@@ -1,6 +1,6 @@
 <?php
 
-namespace FL\ReportsBundle\DataTransformer\BuildReportQueryTransformer;
+namespace FL\ReportsBundle\DataTransformer;
 
 use FL\QBJSParserBundle\Model\Builder\ResultColumn;
 use FL\QBJSParserBundle\Service\JsonQueryParserInterface;
@@ -14,7 +14,7 @@ use Symfony\Component\PropertyAccess\PropertyAccess;
 use FL\ReportsBundle\DataObjects\BuildReportQuery;
 use Symfony\Component\Translation\TranslatorInterface;
 
-class QueryToResponseArray
+class BuildQueryToResults
 {
     /**
      * @var JsonQueryParserInterface
@@ -63,81 +63,6 @@ class QueryToResponseArray
     }
 
     /**
-     * Return value is suitable to be serialized into REST JSON, and used as an HTTP response.
-     *
-     * @param BuildReportQuery $buildReportQuery
-     *
-     * @return array
-     */
-    public function transformToRestArray(BuildReportQuery $buildReportQuery): array
-    {
-        $parsedRuleGroup = $this->jsonQueryParser->parseJsonString(
-            $buildReportQuery->getReport()->getRulesJsonString(),
-            $buildReportQuery->getReportBuilder()->getClassName(),
-            $buildReportQuery->getReport()->getSortColumns()
-        );
-        $currentPage = $buildReportQuery->getPaginationQuery()->getCurrentPage();
-        $resultsPerPage = $buildReportQuery->getPaginationQuery()->getMaxResultsPerPage();
-        $rawResults = $this->reportResultsStorage->resultsFromParsedRuleGroup($parsedRuleGroup, $currentPage, $resultsPerPage);
-
-        $report = $buildReportQuery->getReport();
-        $serializedResults = $this->serializedResults($rawResults, $report);
-        $columnsHumanReadable = $this->columnsHumanReadable($report, $buildReportQuery);
-
-        $totalResults = $this->reportResultsStorage->countResultsFromParsedRuleGroup($parsedRuleGroup);
-        $totalPages = ceil($totalResults / $resultsPerPage);
-
-        $responseArray = [
-            'data' => [
-                    'columns' => array_values($report->getColumns()),
-                    'reportColumnsHumanReadable' => $columnsHumanReadable,
-                    'results' => $serializedResults,
-                ],
-            'state' => [
-                'currentPage' => $currentPage,
-                'maxResultsPerPage' => $resultsPerPage,
-                'resultsInThisPage' => count($serializedResults),
-                'totalResults' => $totalResults,
-                'totalPages' => $totalPages,
-            ],
-        ];
-
-        $responseArray['links']['self']['baseUrl'] = $buildReportQuery->getBaseUrl();
-        $responseArray['links']['self']['data'] = [
-            'currentPage' => $currentPage,
-            'maxResultsPerPage' => $resultsPerPage,
-            'reportBuilderId' => $report->getReportBuilderId(),
-            'reportColumns' => $report->getColumns(),
-            'reportSortColumns' => $report->getSortColumns(),
-            'rulesJsonString' => $report->getRulesJsonString(),
-        ];
-        if ($currentPage > 1) {
-            $responseArray['links']['prev']['baseUrl'] = $buildReportQuery->getBaseUrl();
-            $responseArray['links']['prev']['data'] = [
-                'currentPage' => $currentPage - 1,
-                'maxResultsPerPage' => $resultsPerPage,
-                'reportBuilderId' => $report->getReportBuilderId(),
-                'reportColumns' => $report->getColumns(),
-                'reportSortColumns' => $report->getSortColumns(),
-                'rulesJsonString' => $report->getRulesJsonString(),
-            ];
-        }
-        if ($currentPage < $totalPages) {
-            $responseArray['links']['next']['baseUrl'] = $buildReportQuery->getBaseUrl();
-            $responseArray['links']['next']['data'] = [
-                'currentPage' => $currentPage + 1,
-                'maxResultsPerPage' => $resultsPerPage,
-                'reportBuilderId' => $report->getReportBuilderId(),
-                'reportColumns' => $report->getColumns(),
-                'reportSortColumns' => $report->getSortColumns(),
-                'rulesJsonString' => $report->getRulesJsonString(),
-            ];
-        }
-
-        return $responseArray;
-    }
-
-    /**
      * @param BuildReportQuery $buildReportQuery
      *
      * @return array
@@ -174,12 +99,8 @@ class QueryToResponseArray
             ],
         ];
 
-        if ($currentPage > 1) {
-            $resultsArray['previousPage'] = $currentPage - 1;
-        }
-        if ($currentPage < $totalPages) {
-            $resultsArray['nextPage'] = $currentPage + 1;
-        }
+        $resultsArray['state']['previousPage'] = ($currentPage > 1) ? ($currentPage - 1) : null;
+        $resultsArray['state']['nextPage'] = ($currentPage < $totalPages) ? ($currentPage + 1) : null;
 
         return $resultsArray;
     }
