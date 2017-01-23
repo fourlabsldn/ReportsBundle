@@ -3,9 +3,11 @@
 namespace FL\ReportsBundle\Storage\DoctrineORM;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Query;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use FL\QBJSParser\Parsed\AbstractParsedRuleGroup;
 use FL\QBJSParser\Parsed\Doctrine\ParsedRuleGroup;
+use FL\QBJSParser\Parser\Doctrine\SelectPartialParser;
 use FL\ReportsBundle\Storage\ReportResultsStorageInterface;
 
 class ReportResultsStorage implements ReportResultsStorageInterface
@@ -36,8 +38,14 @@ class ReportResultsStorage implements ReportResultsStorageInterface
             return [];
         }
 
-        /* @var ParsedRuleGroup $parsedRuleGroup */
-        $dql = $parsedRuleGroup->getDqlString();
+        // Grouping by Id lets us paginate without the need for a paginator
+        // And since Ids are the only thing we need, it's better for performance
+        $dql = sprintf(
+            '%s GROUP BY %s.id',
+            $parsedRuleGroup->getQueryString(),
+            SelectPartialParser::OBJECT_WORD
+        );
+
         $query = $this->entityManager->createQuery($dql);
         $query->setParameters($parsedRuleGroup->getParameters());
 
@@ -49,14 +57,32 @@ class ReportResultsStorage implements ReportResultsStorageInterface
                 ->setFirstResult(($currentPage - 1) * $resultsPerPage);
         }
 
-        $paginator = new Paginator($query, $fetchJoinCollection = true);
-        $results = [];
-        // return an array, not a Paginator
-        foreach ($paginator as $result) {
-            $results[] = $result;
+
+        $idColumnName = SelectPartialParser::OBJECT_WORD . '_id';
+        foreach ($query->getResult(Query::HYDRATE_SCALAR) as $result) {
+            $resultIds[] = $result[$idColumnName];
         }
 
-        return $results;
+        $qb = $this->entityManager->createQueryBuilder();
+        $qb->select('object')
+            ->from($parsedRuleGroup->getClassName(), 'object')
+            ->where('object.id IN (:ids)')
+            ->setParameter('ids', $resultIds);
+
+        // @todo insert event for better hydration
+        // subscribers should only add Joins to this, not where/sort/group/etc.
+
+        $unsortedObjects = $qb->getQuery()->getResult();
+        $idsToObjects = [];
+        foreach ($unsortedObjects as $object) {
+            $idsToObjects[$object->getId()] = $object;
+        }
+
+        $sortedObjects =  array_map(function ($id) use ($idsToObjects) {
+            return $idsToObjects[$id];
+        }, $resultIds);
+
+        return $sortedObjects;
     }
 
     /**
@@ -65,7 +91,7 @@ class ReportResultsStorage implements ReportResultsStorageInterface
     public function countResultsFromParsedRuleGroup(AbstractParsedRuleGroup $parsedRuleGroup): int
     {
         /* @var ParsedRuleGroup $parsedRuleGroup */
-        $dql = $parsedRuleGroup->getDqlString();
+        $dql = $parsedRuleGroup->getQueryString();
         $query = $this->entityManager->createQuery($dql);
         $query->setParameters($parsedRuleGroup->getParameters());
 

@@ -68,7 +68,7 @@ class BuildQueryToResults
      * Return value is suitable to be put into an HTML template, and used as an HTTP response.
      *
      * @param BuildReportQuery $buildReportQuery
-     * @param bool $allResults (if true, ignores the PaginationQuery inside BuildReportQuery)
+     * @param bool             $allResults       (if true, ignores the PaginationQuery inside BuildReportQuery)
      *
      * @return array
      */
@@ -192,7 +192,6 @@ class BuildQueryToResults
 
         return $columnsHumanReadable;
     }
-    
 
     /**
      * @param mixed $value
