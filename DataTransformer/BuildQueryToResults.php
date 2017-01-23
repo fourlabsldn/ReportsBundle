@@ -74,6 +74,7 @@ class BuildQueryToResults
             $buildReportQuery->getReportBuilder()->getClassName(),
             $buildReportQuery->getReport()->getSortColumns()
         );
+
         $currentPage = $buildReportQuery->getPaginationQuery()->getCurrentPage();
         $resultsPerPage = $buildReportQuery->getPaginationQuery()->getMaxResultsPerPage();
         $rawResults = $this->reportResultsStorage->resultsFromParsedRuleGroup($parsedRuleGroup, $currentPage, $resultsPerPage);
@@ -156,6 +157,7 @@ class BuildQueryToResults
         $serializedResults = [];
 
         foreach ($results as $key => $result) { // go through a single page
+            $serializedResults[$key] = []; // rows still exist, even if there are no columns
             foreach ($report->getColumns() as $column) {
                 try {
                     $columnValue = $this->valueToString($accessor->getValue($result, $column));
