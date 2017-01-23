@@ -123,18 +123,30 @@ class BuildQueryToResults
      * Return value is suitable to be serialized into a CSV file, and used as an HTTP response.
      *
      * @param BuildReportQuery $buildReportQuery
+     * @param bool             $allResults       (if true, ignores the PaginationQuery inside BuildReportQuery)
      *
      * @return array
      */
-    public function transformToTableArray(BuildReportQuery $buildReportQuery): array
+    public function transformToTableArray(BuildReportQuery $buildReportQuery, bool $allResults = false): array
     {
-        $resultsArray = $this->transformToResultsArray($buildReportQuery, true);
+        $resultsArray = $this->transformToResultsArray($buildReportQuery, $allResults);
+        $report = $buildReportQuery->getReport();
+        $columnToHumanReadable = $this->resolveColumnsHumanReadable($report, $buildReportQuery);
 
-        return array_merge(
-            [$buildReportQuery->getReport()->getColumns()], // machine named columns
-            [$resultsArray['header']], // human readable columns
-            $resultsArray['results'] // result rows
-        );
+        // return an array in this format:
+        // [
+        //  ['Column X Human Readable Name' => 'Hello', 'Column Y HumanReadableName' => 'Bye'],
+        //  ['Column X Human Readable Name' => 'Hi', 'Column Y HumanReadableName' => 'See you'],
+        // ]
+        $newRows = [];
+        foreach ($resultsArray['data']['results'] as $rowKey => $row) {
+            $newRows[$rowKey] = [];
+            foreach ($row as $columnMachineName => $columnValue) {
+                $newRows[$rowKey][$columnToHumanReadable[$columnMachineName]] = $columnValue;
+            }
+        }
+
+        return $newRows;
     }
 
     /**
@@ -179,7 +191,7 @@ class BuildQueryToResults
      * @param ReportInterface  $report
      * @param BuildReportQuery $buildReportQuery
      *
-     * @return array
+     * @return array (column machine names as keys)
      */
     protected function resolveColumnsHumanReadable(ReportInterface $report, BuildReportQuery $buildReportQuery): array
     {
