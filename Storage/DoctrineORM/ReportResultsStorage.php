@@ -6,7 +6,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use FL\QBJSParser\Parsed\AbstractParsedRuleGroup;
-use FL\QBJSParser\Parsed\Doctrine\ParsedRuleGroup;
 use FL\QBJSParser\Parser\Doctrine\SelectPartialParser;
 use FL\ReportsBundle\Storage\ReportResultsStorageInterface;
 
