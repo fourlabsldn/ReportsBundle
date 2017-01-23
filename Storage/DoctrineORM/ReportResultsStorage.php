@@ -45,7 +45,8 @@ class ReportResultsStorage implements ReportResultsStorageInterface
         );
 
         // GROUP BY must be placed before ORDER BY
-        $dqlWithGroupBy = $parsedRuleGroup->copyWithReplacedString('ORDER BY', $groupByPartialDql . ' ORDER BY', $groupByPartialDql)
+        $dqlWithGroupBy = $parsedRuleGroup
+            ->copyWithReplacedString('ORDER BY', $groupByPartialDql.' ORDER BY', $groupByPartialDql)
             ->getQueryString();
 
         // Create Query
