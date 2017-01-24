@@ -18,9 +18,10 @@ class ReportResultsStorage implements ReportResultsStorageInterface
     protected $entityManager;
 
     /**
-     * @param EntityManagerInterface    $entityManager
+     * @param EntityManagerInterface $entityManager
      */
-    public function __construct(EntityManagerInterface $entityManager) {
+    public function __construct(EntityManagerInterface $entityManager)
+    {
         $this->entityManager = $entityManager;
     }
 
@@ -71,7 +72,7 @@ class ReportResultsStorage implements ReportResultsStorageInterface
             return [];
         }
 
-        /**
+        /*
          * We are doing this because this we should not be hydrating the complete
          * object graph and its associations.
          *
@@ -141,7 +142,7 @@ class ReportResultsStorage implements ReportResultsStorageInterface
         $associationMappings = $classMetadata->getAssociationMappings();
         $associationCache = []; // used to prevent recursive execution
 
-        foreach($associationMappings as $mappingKey => $mapping ) {
+        foreach ($associationMappings as $mappingKey => $mapping) {
             $associationIdentifier = sprintf(
                 '%s::%s____%s',
                 $mapping['sourceEntity'],
