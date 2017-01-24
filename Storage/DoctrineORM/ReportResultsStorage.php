@@ -134,6 +134,12 @@ class ReportResultsStorage implements ReportResultsStorageInterface
      * Forces X_To_One relationship to be loaded eagerly.
      * Forces X_To_Many relationship to be loaded lazily.
      *
+     * In the future, consider only loading eagerly for entities
+     * defined in parameter "fl_qbjs_parser:doctrine_classes_and_mappings". 
+     * Documentation would be needed such that ResultColumnCreatedEvent 
+     * isn't misused. Not currently being done because it doesn't seem to 
+     * greatly affect performance.
+     *
      * @param string $entityClass
      */
     private function modifyMetadata(string $entityClass)
