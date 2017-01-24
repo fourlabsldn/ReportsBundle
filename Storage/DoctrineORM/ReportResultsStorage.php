@@ -161,6 +161,7 @@ class ReportResultsStorage implements ReportResultsStorageInterface
             }
         }
 
-        $this->entityManager->getClassMetadata($entityClass)->associationMappings = $associationMappings;
+        // the property is public, but use reflection, in case it becomes private in the future.
+        (new \ReflectionProperty(ClassMetadataInfo::class, 'associationMappings'))->setValue($classMetadata, $associationMappings);
     }
 }
