@@ -3,7 +3,6 @@ services:
     class: FL\ReportsBundle\DataTransformer\BuildQueryToResults
     arguments:
       - "@fl_qbjs_parser.json_query_parser.doctrine_orm_parser"
-      - "@exercise_html_purifier.default"
       - "@fl_reports.storage.doctrine_orm.report_results"
       - "@event_dispatcher"
       - "@translator"

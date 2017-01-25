@@ -23,11 +23,6 @@ class BuildQueryToResults
     protected $jsonQueryParser;
 
     /**
-     * @var \HTMLPurifier
-     */
-    protected $htmlPurifier;
-
-    /**
      * @var ReportResultsStorageInterface
      */
     protected $reportResultsStorage;
@@ -44,20 +39,17 @@ class BuildQueryToResults
 
     /**
      * @param JsonQueryParserInterface      $jsonQueryParser
-     * @param \HTMLPurifier                 $htmlPurifier
      * @param ReportResultsStorageInterface $reportResultsStorage
      * @param EventDispatcherInterface      $dispatcher
      * @param TranslatorInterface           $translator
      */
     public function __construct(
         JsonQueryParserInterface $jsonQueryParser,
-        \HTMLPurifier $htmlPurifier,
         ReportResultsStorageInterface $reportResultsStorage,
         EventDispatcherInterface $dispatcher,
         TranslatorInterface $translator
     ) {
         $this->jsonQueryParser = $jsonQueryParser;
-        $this->htmlPurifier = $htmlPurifier;
         $this->reportResultsStorage = $reportResultsStorage;
         $this->dispatcher = $dispatcher;
         $this->translator = $translator;
@@ -176,7 +168,7 @@ class BuildQueryToResults
                     $result,
                     $reportResultColumn
                 ));
-                $objectResultsToArray[$key][$column] = $this->htmlPurifier->purify($reportResultColumn->getColumnValue());
+                $objectResultsToArray[$key][$column] = $reportResultColumn->getColumnValue();
             }
         }
 
