@@ -38,43 +38,45 @@ class ReportResultsStorage implements ReportResultsStorageInterface
             return [];
         }
 
+        // GROUP BY must be placed before ORDER BY
         // Grouping by Id lets us paginate without the need for a paginator
-        // And since Ids are the only thing we need, it's better for performance
+        // SELECT only the root entity id's column
+        // Ids are the only thing we need, it's better for performance
         $groupByPartialDql = sprintf(
             'GROUP BY %s.id',
             SelectPartialParser::OBJECT_WORD
         );
-
-        // GROUP BY must be placed before ORDER BY
-        $dqlWithGroupBy = $parsedRuleGroup
+        $selectPartialDql = sprintf(
+            'SELECT %s.id AS root_entity_id',
+            SelectPartialParser::OBJECT_WORD
+        );
+        $modifiedDql = $parsedRuleGroup
             ->copyWithReplacedString('ORDER BY', $groupByPartialDql.' ORDER BY', $groupByPartialDql)
+            ->copyWithReplacedStringRegex('/SELECT.+FROM/', $selectPartialDql.' FROM', '')
             ->getQueryString();
 
         // Create Query
-        $query = $this->entityManager->createQuery($dqlWithGroupBy);
+        $query = $this->entityManager->createQuery($modifiedDql);
         $query->setParameters($parsedRuleGroup->getParameters());
 
         if (
             $resultsPerPage !== null &&
             $currentPage !== null
         ) {
-            $query->setMaxResults($resultsPerPage)
-                ->setFirstResult(($currentPage - 1) * $resultsPerPage);
+            $query->setMaxResults($resultsPerPage)->setFirstResult(($currentPage - 1) * $resultsPerPage);
         }
 
         // Use query to get resultIds
-        $idColumnName = sprintf('%s_id', SelectPartialParser::OBJECT_WORD);
         $resultIds = [];
         foreach ($query->getResult(Query::HYDRATE_SCALAR) as $result) {
-            $resultIds[] = $result[$idColumnName];
+            $resultIds[] = $result['root_entity_id'];
         }
         if (count($resultIds) === 0) {
             return [];
         }
 
         /*
-         * We are doing this because this we should not be hydrating the complete
-         * object graph and its associations.
+         * Let's not hydrate the complete object graph and its associations.
          *
          * Entity metadata is modified such that any __ToOne associations are
          * eagerly loaded (no repeated queries to access values in each row).
@@ -91,6 +93,7 @@ class ReportResultsStorage implements ReportResultsStorageInterface
          * Note: More changes would be needed because $queryBuilder->getResult(Query::HYDRATE_SCALAR)
          * does not return an array of hydrated objects.
          */
+        $this->entityManager->clear();
         $this->modifyMetadata($parsedRuleGroup->getClassName());
         $unsortedObjects = $this->entityManager->createQueryBuilder()
             ->select('object')
