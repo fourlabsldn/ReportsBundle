@@ -31,27 +31,20 @@ class ReportResultsStorage implements ReportResultsStorageInterface
     public function resultsFromParsedRuleGroup(AbstractParsedRuleGroup $parsedRuleGroup, int $currentPage = null, int $resultsPerPage = null): array
     {
         if (
-            $resultsPerPage !== null &&
+            $currentPage !== null &&
             $resultsPerPage !== null &&
             ($currentPage === 0 || $resultsPerPage === 0)
         ) {
             return [];
         }
 
-        // GROUP BY must be placed before ORDER BY
-        // Grouping by Id lets us paginate without the need for a paginator
         // SELECT only the root entity id's column
         // Ids are the only thing we need, it's better for performance
-        $groupByPartialDql = sprintf(
-            'GROUP BY %s.id',
-            SelectPartialParser::OBJECT_WORD
-        );
         $selectPartialDql = sprintf(
-            'SELECT %s.id AS root_entity_id',
+            'SELECT DISTINCT %s.id AS root_entity_id',
             SelectPartialParser::OBJECT_WORD
         );
         $modifiedDql = $parsedRuleGroup
-            ->copyWithReplacedString('ORDER BY', $groupByPartialDql.' ORDER BY', $groupByPartialDql)
             ->copyWithReplacedStringRegex('/SELECT.+FROM/', $selectPartialDql.' FROM', '')
             ->getQueryString();
 
@@ -60,10 +53,11 @@ class ReportResultsStorage implements ReportResultsStorageInterface
         $query->setParameters($parsedRuleGroup->getParameters());
 
         if (
-            $resultsPerPage !== null &&
-            $currentPage !== null
+            $currentPage !== null &&
+            $resultsPerPage !== null
         ) {
-            $query->setMaxResults($resultsPerPage)->setFirstResult(($currentPage - 1) * $resultsPerPage);
+            $query->setMaxResults($resultsPerPage)
+                ->setFirstResult(($currentPage - 1) * $resultsPerPage);
         }
 
         // Use query to get resultIds
@@ -72,7 +66,7 @@ class ReportResultsStorage implements ReportResultsStorageInterface
             $resultIds[] = $result['root_entity_id'];
         }
         if (count($resultIds) === 0) {
-            return [];
+            return []; // WHERE IN [] would have returned all results
         }
 
         /*
@@ -120,18 +114,22 @@ class ReportResultsStorage implements ReportResultsStorageInterface
      */
     public function countResultsFromParsedRuleGroup(AbstractParsedRuleGroup $parsedRuleGroup): int
     {
-        $dql = $parsedRuleGroup->getQueryString();
-        $query = $this->entityManager->createQuery($dql);
-        $query->setParameters($parsedRuleGroup->getParameters());
+        $selectPartialDql = sprintf(
+            'SELECT %s',
+            SelectPartialParser::OBJECT_WORD
+        );
+        $modifiedDql = $parsedRuleGroup
+            ->copyWithReplacedStringRegex('/SELECT.+FROM/', $selectPartialDql.' FROM', '')
+            ->getQueryString();
 
-        // using Paginator lets us easily know the total rows in the database
-        // without manually modifying the original query
-        $paginator = new Paginator($query, $fetchJoinCollection = true);
+        $query = $this->entityManager
+            ->createQuery($modifiedDql)
+            ->setParameters($parsedRuleGroup->getParameters());
+
+        $paginator = new Paginator($query, false);
 
         return $paginator->count();
     }
-
-    private $associationCache = [];
 
     /**
      * Forces X_To_One relationship to be loaded eagerly.
@@ -161,7 +159,7 @@ class ReportResultsStorage implements ReportResultsStorageInterface
             if (in_array($associationIdentifier, $associationCache)) {
                 continue;
             }
-            $this->associationCache[] = $associationIdentifier;
+            $associationCache[] = $associationIdentifier;
 
             if (in_array($mapping['type'], [ClassMetadataInfo::MANY_TO_ONE, ClassMetadataInfo::ONE_TO_ONE, ClassMetadataInfo::TO_ONE])) {
                 $associationMappings[$mappingKey]['fetch'] = ClassMetadataInfo::FETCH_EAGER;
