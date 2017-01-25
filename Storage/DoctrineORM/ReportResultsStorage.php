@@ -40,6 +40,7 @@ class ReportResultsStorage implements ReportResultsStorageInterface
 
         // SELECT only the root entity id's column
         // Ids are the only thing we need, it's better for performance
+        // Use DISTINCT to get one row per root entity
         $selectPartialDql = sprintf(
             'SELECT DISTINCT %s.id AS root_entity_id',
             SelectPartialParser::OBJECT_WORD
