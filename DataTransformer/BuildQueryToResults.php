@@ -8,7 +8,6 @@ use FL\ReportsBundle\Model\ReportInterface;
 use FL\ReportsBundle\Model\ReportResultColumn;
 use FL\ReportsBundle\Storage\ReportResultsStorageInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\PropertyAccess\Exception\UnexpectedTypeException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use FL\ReportsBundle\DataObjects\BuildReportQuery;
 use Symfony\Component\Translation\TranslatorInterface;
@@ -169,7 +168,7 @@ class BuildQueryToResults
             foreach ($report->getColumns() as $column) {
                 try {
                     $columnValue = $this->transformValueToString($accessor->getValue($result, $column));
-                } catch (UnexpectedTypeException $exception) { // when accessing several levels deep, one of the properties might be null
+                } catch (\Exception $exception) { // when accessing several levels deep, one of the properties might be null, or something else might go wrong
                     $columnValue = '';
                 }
                 $reportResultColumn = new ReportResultColumn($column, $columnValue);
