@@ -2,6 +2,7 @@
 
 namespace FL\ReportsBundle\DataTransformer;
 
+use FL\QBJSParser\Parsed\AbstractParsedRuleGroup;
 use FL\QBJSParserBundle\Service\JsonQueryParserInterface;
 use FL\ReportsBundle\Event\ResultColumnCreatedEvent;
 use FL\ReportsBundle\Model\ReportInterface;
@@ -96,7 +97,7 @@ class BuildQueryToResults
             $rawResults = $this->reportResultsStorage->resultsFromParsedRuleGroup($parsedRuleGroup, $currentPage, $resultsPerPage);
         }
 
-        $objectResultsToArray = $this->transformObjectResultsToArray($rawResults, $report);
+        $objectResultsToArray = $this->transformObjectResultsToArray($rawResults, $report, ResultColumnCreatedEvent::RESULTS_TYPE_HTML);
         $totalResults = $this->reportResultsStorage->countResultsFromParsedRuleGroup($parsedRuleGroup);
         $totalPages = ceil($totalResults / $resultsPerPage);
 
@@ -112,6 +113,11 @@ class BuildQueryToResults
 
     /**
      * Return value is suitable to be serialized into a CSV file, and used as an HTTP response.
+     * An array in this format:
+     * [
+     *  ['Column X Human Readable Name' => 'Green', 'Column Y Human Readable Name' => 'Shirt'],
+     *  ['Column X Human Readable Name' => 'Blue', 'Column Y Human Readable Name' => 'Shirt'],
+     * ].
      *
      * @param BuildReportQuery $buildReportQuery
      * @param bool             $allResults       (if true, ignores the PaginationQuery inside BuildReportQuery)
@@ -120,17 +126,20 @@ class BuildQueryToResults
      */
     public function transformToTableArray(BuildReportQuery $buildReportQuery, bool $allResults = false): array
     {
-        $resultsArray = $this->transformToResultsArray($buildReportQuery, $allResults);
         $report = $buildReportQuery->getReport();
         $columnToHumanReadable = $this->resolveColumnsHumanReadable($report, $buildReportQuery);
+        $currentPage = $buildReportQuery->getPaginationQuery()->getCurrentPage();
+        $resultsPerPage = $buildReportQuery->getPaginationQuery()->getMaxResultsPerPage();
 
-        // return an array in this format:
-        // [
-        //  ['Column X Human Readable Name' => 'Hello', 'Column Y HumanReadableName' => 'Bye'],
-        //  ['Column X Human Readable Name' => 'Hi', 'Column Y HumanReadableName' => 'See you'],
-        // ]
+        $parsedRuleGroup = $this->transformBuildQueryToParsedRuleGroup($buildReportQuery);
+        if ($allResults) {
+            $rawResults = $this->reportResultsStorage->resultsFromParsedRuleGroup($parsedRuleGroup, null, null);
+        } else {
+            $rawResults = $this->reportResultsStorage->resultsFromParsedRuleGroup($parsedRuleGroup, $currentPage, $resultsPerPage);
+        }
+
         $newRows = [];
-        foreach ($resultsArray['data']['results'] as $rowKey => $row) {
+        foreach ($this->transformObjectResultsToArray($rawResults, $report, ResultColumnCreatedEvent::RESULTS_TYPE_CSV) as $rowKey => $row) {
             $newRows[$rowKey] = [];
             foreach ($row as $columnMachineName => $columnValue) {
                 $newRows[$rowKey][$columnToHumanReadable[$columnMachineName]] = $columnValue;
@@ -146,10 +155,11 @@ class BuildQueryToResults
      *
      * @param object[]        $rawResults
      * @param ReportInterface $report
+     * @param int             $resultsType
      *
      * @return array
      */
-    protected function transformObjectResultsToArray(array $rawResults, ReportInterface $report): array
+    protected function transformObjectResultsToArray(array $rawResults, ReportInterface $report, int $resultsType): array
     {
         $accessor = PropertyAccess::createPropertyAccessor();
 
@@ -166,13 +176,28 @@ class BuildQueryToResults
                 $reportResultColumn = new ReportResultColumn($column, $columnValue);
                 $this->dispatcher->dispatch(ResultColumnCreatedEvent::EVENT_NAME, new ResultColumnCreatedEvent(
                     $result,
-                    $reportResultColumn
+                    $reportResultColumn,
+                    $resultsType
                 ));
                 $objectResultsToArray[$key][$column] = $reportResultColumn->getColumnValue();
             }
         }
 
         return $objectResultsToArray;
+    }
+
+    /**
+     * @param BuildReportQuery $buildReportQuery
+     *
+     * @return AbstractParsedRuleGroup
+     */
+    protected function transformBuildQueryToParsedRuleGroup(BuildReportQuery $buildReportQuery)
+    {
+        return $this->jsonQueryParser->parseJsonString(
+            $buildReportQuery->getReport()->getRulesJsonString(),
+            $buildReportQuery->getReportBuilder()->getClassName(),
+            $buildReportQuery->getReport()->getSortColumns()
+        );
     }
 
     /**
