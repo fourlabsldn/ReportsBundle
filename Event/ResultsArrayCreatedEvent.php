@@ -16,7 +16,7 @@ class ResultsArrayCreatedEvent extends Event
      * @var ReportInterface
      */
     private $report;
-    
+
     /**
      * @var array
      */
@@ -49,6 +49,7 @@ class ResultsArrayCreatedEvent extends Event
 
     /**
      * @param array $results
+     *
      * @return $this
      */
     public function setResults(array $results)
