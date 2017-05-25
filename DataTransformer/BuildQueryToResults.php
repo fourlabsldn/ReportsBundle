@@ -5,6 +5,7 @@ namespace FL\ReportsBundle\DataTransformer;
 use FL\QBJSParser\Parsed\AbstractParsedRuleGroup;
 use FL\QBJSParserBundle\Service\JsonQueryParserInterface;
 use FL\ReportsBundle\Event\ResultColumnCreatedEvent;
+use FL\ReportsBundle\Event\ResultsArrayCreatedEvent;
 use FL\ReportsBundle\Model\ReportInterface;
 use FL\ReportsBundle\Model\ReportResultColumn;
 use FL\ReportsBundle\Storage\ReportResultsStorageInterface;
@@ -146,7 +147,10 @@ class BuildQueryToResults
             }
         }
 
-        return $newRows;
+        $event = new ResultsArrayCreatedEvent($report, $newRows);
+        $this->dispatcher->dispatch(ResultsArrayCreatedEvent::EVENT_NAME, $event);
+
+        return $event->getResults();
     }
 
     /**
