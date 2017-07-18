@@ -58,6 +58,33 @@ class BuildQueryToResults
         $this->translator = $translator;
     }
 
+    protected function getRawResults(BuildReportQuery $buildReportQuery, bool $allResults = false): array
+    {
+        $this->reportResultsStorage->clearRuleGroups();
+
+        foreach ($buildReportQuery->getReport()->getRuleSets() as $ruleSet) {
+            $parsedRuleGroup = $this->jsonQueryParser->parseJsonString(
+                $ruleSet->getRules(),
+                $buildReportQuery->getReportBuilder()->getClassName(),
+                $buildReportQuery->getReport()->getSortColumns()
+            );
+
+            $this->reportResultsStorage->addRuleGroup(
+                $parsedRuleGroup,
+                $ruleSet->getType() === ReportRuleSetInterface::TYPE_EXCLUDE
+            );
+        }
+
+        if ($allResults) {
+            return $this->reportResultsStorage->getResults();
+        }
+
+        $currentPage = $buildReportQuery->getPaginationQuery()->getCurrentPage();
+        $resultsPerPage = $buildReportQuery->getPaginationQuery()->getMaxResultsPerPage();
+
+        return $this->reportResultsStorage->getResults($currentPage, $resultsPerPage);
+    }
+
     /**
      * Return value is suitable to be put into an HTML template, and used as an HTTP response.
      *
@@ -87,28 +114,7 @@ class BuildQueryToResults
             ],
         ];
 
-        $this->reportResultsStorage->clearRuleGroups();
-
-        foreach ($buildReportQuery->getReport()->getRuleSets() as $ruleSet) {
-            $parsedRuleGroup = $this->jsonQueryParser->parseJsonString(
-                $ruleSet->getRules(),
-                $buildReportQuery->getReportBuilder()->getClassName(),
-                $buildReportQuery->getReport()->getSortColumns()
-            );
-
-            $this->reportResultsStorage->addRuleGroup(
-                $parsedRuleGroup,
-                $ruleSet->getType() === ReportRuleSetInterface::TYPE_EXCLUDE
-            );
-        }
-
-        $this->reportResultsStorage->getResults($currentPage, $resultsPerPage);
-
-        if ($allResults) {
-            $rawResults = $this->reportResultsStorage->getResults();
-        } else {
-            $rawResults = $this->reportResultsStorage->getResults($currentPage, $resultsPerPage);
-        }
+        $rawResults = $this->getRawResults($buildReportQuery, $allResults);
 
         $objectResultsToArray = $this->transformObjectResultsToArray($rawResults, $report, ResultColumnCreatedEvent::RESULTS_TYPE_HTML);
         $totalResults = $this->reportResultsStorage->countResults();
@@ -141,15 +147,8 @@ class BuildQueryToResults
     {
         $report = $buildReportQuery->getReport();
         $columnToHumanReadable = $this->resolveColumnsHumanReadable($report, $buildReportQuery);
-        $currentPage = $buildReportQuery->getPaginationQuery()->getCurrentPage();
-        $resultsPerPage = $buildReportQuery->getPaginationQuery()->getMaxResultsPerPage();
 
-        $parsedRuleGroup = $this->transformBuildQueryToParsedRuleGroup($buildReportQuery);
-        if ($allResults) {
-            $rawResults = $this->reportResultsStorage->resultsFromParsedRuleGroup($parsedRuleGroup, null, null);
-        } else {
-            $rawResults = $this->reportResultsStorage->resultsFromParsedRuleGroup($parsedRuleGroup, $currentPage, $resultsPerPage);
-        }
+        $rawResults = $this->getRawResults($buildReportQuery, $allResults);
 
         $newRows = [];
         foreach ($this->transformObjectResultsToArray($rawResults, $report, ResultColumnCreatedEvent::RESULTS_TYPE_CSV) as $rowKey => $row) {
@@ -200,20 +199,6 @@ class BuildQueryToResults
         }
 
         return $objectResultsToArray;
-    }
-
-    /**
-     * @param BuildReportQuery $buildReportQuery
-     *
-     * @return AbstractParsedRuleGroup
-     */
-    protected function transformBuildQueryToParsedRuleGroup(BuildReportQuery $buildReportQuery)
-    {
-        return $this->jsonQueryParser->parseJsonString(
-            $buildReportQuery->getReport()->getRulesJsonString(),
-            $buildReportQuery->getReportBuilder()->getClassName(),
-            $buildReportQuery->getReport()->getSortColumns()
-        );
     }
 
     /**
