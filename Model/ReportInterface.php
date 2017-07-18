@@ -46,16 +46,15 @@ interface ReportInterface
     public function setReportBuilderHumanReadableName(string $reportBuilderHumanReadableName): ReportInterface;
 
     /**
-     * @return string
+     * @return ReportRuleSetInterface[]
      */
-    public function getRulesJsonString(): string;
+    public function getRuleSets(): array;
 
     /**
-     * @param string $rulesJsonString
-     *
-     * @return ReportInterface
+     * @param ReportRuleSetInterface[] $ruleSets
+     * @return $this
      */
-    public function setRulesJsonString(string $rulesJsonString): ReportInterface;
+    public function setRuleSets(array $ruleSets);
 
     /**
      * @return string

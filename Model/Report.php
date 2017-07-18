@@ -25,9 +25,9 @@ class Report implements ReportInterface
     protected $reportBuilderHumanReadableName = '';
 
     /**
-     * @var string
+     * @var ReportRuleSetInterface[]
      */
-    protected $rulesJsonString = '{"condition":"AND","rules":[],"valid":true}';
+    protected $ruleSets = [];
 
     /**
      * @var string[]
@@ -38,6 +38,11 @@ class Report implements ReportInterface
      * @var string[]
      */
     protected $sortColumns = [];
+
+    public function __construct()
+    {
+        $this->ruleSets[] = new ReportRuleSet();
+    }
 
     /**
      * {@inheritdoc}
@@ -102,19 +107,20 @@ class Report implements ReportInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @return ReportRuleSetInterface[]
      */
-    public function getRulesJsonString(): string
+    public function getRuleSets(): array
     {
-        return $this->rulesJsonString;
+        return $this->ruleSets;
     }
 
     /**
-     * {@inheritdoc}
+     * @param ReportRuleSetInterface[] $ruleSets
+     * @return $this
      */
-    public function setRulesJsonString(string $rulesJsonString): ReportInterface
+    public function setRuleSets(array $ruleSets)
     {
-        $this->rulesJsonString = $rulesJsonString;
+        $this->ruleSets = $ruleSets;
 
         return $this;
     }

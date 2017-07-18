@@ -1,0 +1,4 @@
+FL\ReportsBundle\Model\ReportRuleSet:
+  attributes:
+    type: ~
+    rules: ~

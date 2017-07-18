@@ -3,6 +3,7 @@
 namespace FL\ReportsBundle\Model\DoctrineORM;
 
 use Doctrine\ORM\Mapping as ORM;
+use FL\ReportsBundle\Model\ReportRuleSetInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 use FL\ReportsBundle\Model\Report as BaseReport;
 
@@ -44,11 +45,10 @@ class Report extends BaseReport
     protected $reportBuilderHumanReadableName = '';
 
     /**
-     * @var string
-     * @ORM\Column(type="text", nullable=false)
-     * @Assert\NotBlank
+     * @var ReportRuleSetInterface[]
+     * @ORM\Column(type="object", nullable=false)
      */
-    protected $rulesJsonString = '{"condition":"AND","rules":[],"valid":true}';
+    protected $ruleSets;
 
     /**
      * @var string[]
@@ -61,4 +61,16 @@ class Report extends BaseReport
      * @ORM\Column(type="json_array", nullable=true)
      */
     protected $sortColumns = [];
+
+    public function setRuleSets(array $ruleSets)
+    {
+        // ensure changes are persisted even if array size stays the same
+        // @see https://stackoverflow.com/a/13231876/2106834
+        if (!empty($ruleSets) && $ruleSets === $this->ruleSets) {
+            reset($ruleSets);
+            $ruleSets[key($ruleSets)] = clone current($ruleSets);
+        }
+
+        return parent::setRuleSets($ruleSets);
+    }
 }

@@ -8,6 +8,7 @@ use FL\ReportsBundle\Event\ResultColumnCreatedEvent;
 use FL\ReportsBundle\Event\ResultsArrayCreatedEvent;
 use FL\ReportsBundle\Model\ReportInterface;
 use FL\ReportsBundle\Model\ReportResultColumn;
+use FL\ReportsBundle\Model\ReportRuleSetInterface;
 use FL\ReportsBundle\Storage\ReportResultsStorageInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\PropertyAccess\PropertyAccess;
@@ -86,20 +87,31 @@ class BuildQueryToResults
             ],
         ];
 
-        $parsedRuleGroup = $this->jsonQueryParser->parseJsonString(
-            $buildReportQuery->getReport()->getRulesJsonString(),
-            $buildReportQuery->getReportBuilder()->getClassName(),
-            $buildReportQuery->getReport()->getSortColumns()
-        );
+        $this->reportResultsStorage->clearRuleGroups();
+
+        foreach ($buildReportQuery->getReport()->getRuleSets() as $ruleSet) {
+            $parsedRuleGroup = $this->jsonQueryParser->parseJsonString(
+                $ruleSet->getRules(),
+                $buildReportQuery->getReportBuilder()->getClassName(),
+                $buildReportQuery->getReport()->getSortColumns()
+            );
+
+            $this->reportResultsStorage->addRuleGroup(
+                $parsedRuleGroup,
+                $ruleSet->getType() === ReportRuleSetInterface::TYPE_EXCLUDE
+            );
+        }
+
+        $this->reportResultsStorage->getResults($currentPage, $resultsPerPage);
 
         if ($allResults) {
-            $rawResults = $this->reportResultsStorage->resultsFromParsedRuleGroup($parsedRuleGroup, null, null);
+            $rawResults = $this->reportResultsStorage->getResults();
         } else {
-            $rawResults = $this->reportResultsStorage->resultsFromParsedRuleGroup($parsedRuleGroup, $currentPage, $resultsPerPage);
+            $rawResults = $this->reportResultsStorage->getResults($currentPage, $resultsPerPage);
         }
 
         $objectResultsToArray = $this->transformObjectResultsToArray($rawResults, $report, ResultColumnCreatedEvent::RESULTS_TYPE_HTML);
-        $totalResults = $this->reportResultsStorage->countResultsFromParsedRuleGroup($parsedRuleGroup);
+        $totalResults = $this->reportResultsStorage->countResults();
         $totalPages = ceil($totalResults / $resultsPerPage);
 
         $resultsArray['data']['results'] = $objectResultsToArray;
@@ -217,7 +229,7 @@ class BuildQueryToResults
     {
         $columnsHumanReadable = [];
         foreach ($report->getColumns() as $column) {
-            if ($columnHumanReadable = $buildReportQuery->getReportBuilder()->getHumanReadableWithMachineName($column)) {
+            if (($columnHumanReadable = $buildReportQuery->getReportBuilder()->getHumanReadableWithMachineName($column))) {
                 $columnsHumanReadable[$column] = $columnHumanReadable;
             }
         }

@@ -5,6 +5,7 @@ namespace FL\ReportsBundle\Storage\DoctrineORM;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\ORM\Query;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use FL\QBJSParser\Parsed\AbstractParsedRuleGroup;
 use FL\QBJSParser\Parser\Doctrine\SelectPartialParser;
@@ -18,6 +19,16 @@ class ReportResultsStorage implements ReportResultsStorageInterface
     protected $entityManager;
 
     /**
+     * @var AbstractParsedRuleGroup[]
+     */
+    protected $includeRuleGroups;
+
+    /**
+     * @var AbstractParsedRuleGroup[]
+     */
+    protected $excludeRuleGroups;
+
+    /**
      * @param EntityManagerInterface $entityManager
      */
     public function __construct(EntityManagerInterface $entityManager)
@@ -26,46 +37,155 @@ class ReportResultsStorage implements ReportResultsStorageInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @param AbstractParsedRuleGroup $ruleGroup
+     * @param bool $exclude
+     * @return $this
      */
-    public function resultsFromParsedRuleGroup(AbstractParsedRuleGroup $parsedRuleGroup, int $currentPage = null, int $resultsPerPage = null): array
+    public function addRuleGroup(AbstractParsedRuleGroup $ruleGroup, bool $exclude = false)
     {
-        if (
-            $currentPage !== null &&
-            $resultsPerPage !== null &&
-            ($currentPage === 0 || $resultsPerPage === 0)
-        ) {
-            return [];
+        if ($exclude) {
+            $this->excludeRuleGroups[] = $ruleGroup;
+        } else {
+            $this->includeRuleGroups[] = $ruleGroup;
         }
 
+        return $this;
+    }
+
+    /**
+     * @return $this
+     */
+    public function clearRuleGroups()
+    {
+        $this->excludeRuleGroups = [];
+        $this->includeRuleGroups = [];
+
+        return $this;
+    }
+
+    /**
+     * @param AbstractParsedRuleGroup $ruleGroup
+     * @param int $n
+     * @return string DQL
+     */
+    private function getSubDql(AbstractParsedRuleGroup $ruleGroup, int $n = 0): string
+    {
         // SELECT only the root entity id's column
         // Ids are the only thing we need, it's better for performance
         // Use DISTINCT to get one row per root entity
         $selectPartialDql = sprintf(
-            'SELECT DISTINCT %s.id AS root_entity_id',
+            'SELECT DISTINCT %s.id',
             SelectPartialParser::OBJECT_WORD
         );
-        $modifiedDql = $parsedRuleGroup
+
+        $dql = $ruleGroup
             ->copyWithReplacedStringRegex('/SELECT.+FROM/', $selectPartialDql.' FROM', '')
-            ->getQueryString();
+            ->getQueryString()
+        ;
+        
+        return str_replace(SelectPartialParser::OBJECT_WORD, SelectPartialParser::OBJECT_WORD.$n, $dql);
+    }
 
-        // Create Query
-        $query = $this->entityManager->createQuery($modifiedDql);
-        $query->setParameters($parsedRuleGroup->getParameters());
+    /**
+     * @param QueryBuilder $queryBuilder
+     * @param AbstractParsedRuleGroup $ruleGroup
+     * @return $this
+     */
+    private function addParameters(QueryBuilder $queryBuilder, AbstractParsedRuleGroup $ruleGroup)
+    {
+        // append numerically indexed parameters
+        $queryBuilder->setParameters(
+            array_merge(
+                array_map(function (Query\Parameter $parameter) {
+                    return $parameter->getValue();
+                }, $queryBuilder->getParameters()->toArray()),
+                $ruleGroup->getParameters()
+            )
+        );
 
-        if (
-            $currentPage !== null &&
-            $resultsPerPage !== null
-        ) {
-            $query->setMaxResults($resultsPerPage)
-                ->setFirstResult(($currentPage - 1) * $resultsPerPage);
+        return $this;
+    }
+
+    private function reindexParameters(string $dql)
+    {
+        $n = -1;
+
+        return preg_replace_callback('/\?\d+/', function (array $matches) use (&$n) {
+            $n++;
+            return '?'.$n;
+        }, $dql);
+    }
+
+    private function getQuery(): Query
+    {
+        if (count($this->includeRuleGroups) == 0) {
+            throw new \RuntimeException('Query requires at least one include rule group');
         }
 
-        // Use query to get resultIds
-        $resultIds = [];
-        foreach ($query->getResult(Query::HYDRATE_SCALAR) as $result) {
-            $resultIds[] = $result['root_entity_id'];
+        $queryBuilder = $this->entityManager
+            ->createQueryBuilder()
+            ->select('partial o.{id}')
+            ->from($this->includeRuleGroups[0]->getClassName(), 'o')
+        ;
+
+        $n = 0;
+
+        foreach ($this->includeRuleGroups as $ruleGroup) {
+            $queryBuilder->andWhere(
+                $queryBuilder->expr()->in('o.id', $this->getSubDql($ruleGroup, $n))
+            );
+
+            $this->addParameters($queryBuilder, $ruleGroup);
+
+            $n++;
         }
+
+        foreach ($this->excludeRuleGroups as $ruleGroup) {
+            $queryBuilder->andWhere(
+                $queryBuilder->expr()->notIn('o.id', $this->getSubDql($ruleGroup, $n))
+            );
+
+            $this->addParameters($queryBuilder, $ruleGroup);
+
+            $n++;
+        }
+
+        $query = $queryBuilder->getQuery();
+        $query->setDQL($this->reindexParameters($queryBuilder->getDQL()));
+
+        return $query;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getIds(int $currentPage = null, int $resultsPerPage = null): array
+    {
+        if ($currentPage === 0 || $resultsPerPage === 0) {
+            return [];
+        }
+
+        $query = $this->getQuery();
+
+        if ($currentPage !== null && $resultsPerPage !== null) {
+            $query
+                ->setMaxResults($resultsPerPage)
+                ->setFirstResult(($currentPage - 1) * $resultsPerPage)
+            ;
+        }
+
+        return array_map(function (array $row) {
+            return $row['o_id'];
+        }, $query->getResult(Query::HYDRATE_SCALAR));
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getResults(int $currentPage = null, int $resultsPerPage = null): array
+    {
+        $resultIds = $this->getIds($currentPage, $resultsPerPage);
+
         if (count($resultIds) === 0) {
             return []; // WHERE IN [] would have returned all results
         }
@@ -89,14 +209,15 @@ class ReportResultsStorage implements ReportResultsStorageInterface
          * does not return an array of hydrated objects.
          */
         $this->entityManager->clear();
-        $this->modifyMetadata($parsedRuleGroup->getClassName());
+        $this->modifyMetadata($this->includeRuleGroups[0]->getClassName());
         $unsortedObjects = $this->entityManager->createQueryBuilder()
             ->select('object')
-            ->from($parsedRuleGroup->getClassName(), 'object')
+            ->from($this->includeRuleGroups[0]->getClassName(), 'object')
             ->where('object.id IN (:ids)')
             ->setParameter('ids', $resultIds)
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
 
         $idsToObjects = [];
         foreach ($unsortedObjects as $object) {
@@ -113,21 +234,9 @@ class ReportResultsStorage implements ReportResultsStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function countResultsFromParsedRuleGroup(AbstractParsedRuleGroup $parsedRuleGroup): int
+    public function countResults(): int
     {
-        $selectPartialDql = sprintf(
-            'SELECT %s',
-            SelectPartialParser::OBJECT_WORD
-        );
-        $modifiedDql = $parsedRuleGroup
-            ->copyWithReplacedStringRegex('/SELECT.+FROM/', $selectPartialDql.' FROM', '')
-            ->getQueryString();
-
-        $query = $this->entityManager
-            ->createQuery($modifiedDql)
-            ->setParameters($parsedRuleGroup->getParameters());
-
-        $paginator = new Paginator($query, false);
+        $paginator = new Paginator($this->getQuery(), false);
 
         return $paginator->count();
     }
