@@ -38,7 +38,8 @@ class ReportResultsStorage implements ReportResultsStorageInterface
 
     /**
      * @param AbstractParsedRuleGroup $ruleGroup
-     * @param bool $exclude
+     * @param bool                    $exclude
+     *
      * @return $this
      */
     public function addRuleGroup(AbstractParsedRuleGroup $ruleGroup, bool $exclude = false)
@@ -65,7 +66,8 @@ class ReportResultsStorage implements ReportResultsStorageInterface
 
     /**
      * @param AbstractParsedRuleGroup $ruleGroup
-     * @param int $n
+     * @param int                     $n
+     *
      * @return string DQL
      */
     private function getSubDql(AbstractParsedRuleGroup $ruleGroup, int $n = 0): string
@@ -82,13 +84,14 @@ class ReportResultsStorage implements ReportResultsStorageInterface
             ->copyWithReplacedStringRegex('/SELECT.+FROM/', $selectPartialDql.' FROM', '')
             ->getQueryString()
         ;
-        
+
         return str_replace(SelectPartialParser::OBJECT_WORD, SelectPartialParser::OBJECT_WORD.$n, $dql);
     }
 
     /**
-     * @param QueryBuilder $queryBuilder
+     * @param QueryBuilder            $queryBuilder
      * @param AbstractParsedRuleGroup $ruleGroup
+     *
      * @return $this
      */
     private function addParameters(QueryBuilder $queryBuilder, AbstractParsedRuleGroup $ruleGroup)
@@ -111,14 +114,15 @@ class ReportResultsStorage implements ReportResultsStorageInterface
         $n = -1;
 
         return preg_replace_callback('/\?\d+/', function (array $matches) use (&$n) {
-            $n++;
+            ++$n;
+
             return '?'.$n;
         }, $dql);
     }
 
     private function getQuery(): Query
     {
-        if (count($this->includeRuleGroups) == 0) {
+        if (0 === count($this->includeRuleGroups)) {
             throw new \RuntimeException('Query requires at least one include rule group');
         }
 
@@ -137,7 +141,7 @@ class ReportResultsStorage implements ReportResultsStorageInterface
 
             $this->addParameters($queryBuilder, $ruleGroup);
 
-            $n++;
+            ++$n;
         }
 
         foreach ($this->excludeRuleGroups as $ruleGroup) {
@@ -147,7 +151,7 @@ class ReportResultsStorage implements ReportResultsStorageInterface
 
             $this->addParameters($queryBuilder, $ruleGroup);
 
-            $n++;
+            ++$n;
         }
 
         $query = $queryBuilder->getQuery();
@@ -161,13 +165,13 @@ class ReportResultsStorage implements ReportResultsStorageInterface
      */
     public function getIds(int $currentPage = null, int $resultsPerPage = null): array
     {
-        if ($currentPage === 0 || $resultsPerPage === 0) {
+        if (0 === $currentPage || 0 === $resultsPerPage) {
             return [];
         }
 
         $query = $this->getQuery();
 
-        if ($currentPage !== null && $resultsPerPage !== null) {
+        if (null !== $currentPage && null !== $resultsPerPage) {
             $query
                 ->setMaxResults($resultsPerPage)
                 ->setFirstResult(($currentPage - 1) * $resultsPerPage)
@@ -186,7 +190,7 @@ class ReportResultsStorage implements ReportResultsStorageInterface
     {
         $resultIds = $this->getIds($currentPage, $resultsPerPage);
 
-        if (count($resultIds) === 0) {
+        if (0 === count($resultIds)) {
             return []; // WHERE IN [] would have returned all results
         }
 

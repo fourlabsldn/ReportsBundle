@@ -8,8 +8,11 @@ use Symfony\Component\EventDispatcher\Event;
 class ResultColumnCreatedEvent extends Event
 {
     const EVENT_NAME = 'fl_reports.result_column_created';
+
     const RESULTS_TYPE_HTML = 0;
+
     const RESULTS_TYPE_CSV = 1;
+
     const ALL_RESULTS_TYPES = [
         self::RESULTS_TYPE_HTML,
         self::RESULTS_TYPE_CSV,

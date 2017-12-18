@@ -19,7 +19,7 @@ interface ReportInterface
      *
      * @return ReportInterface
      */
-    public function setReportName(string $reportName): ReportInterface;
+    public function setReportName(string $reportName): self;
 
     /**
      * @return string
@@ -31,7 +31,7 @@ interface ReportInterface
      *
      * @return ReportInterface
      */
-    public function setReportBuilderId(string $reportBuilderId): ReportInterface;
+    public function setReportBuilderId(string $reportBuilderId): self;
 
     /**
      * @return string
@@ -43,7 +43,7 @@ interface ReportInterface
      *
      * @return ReportInterface
      */
-    public function setReportBuilderHumanReadableName(string $reportBuilderHumanReadableName): ReportInterface;
+    public function setReportBuilderHumanReadableName(string $reportBuilderHumanReadableName): self;
 
     /**
      * @return ReportRuleSetInterface[]
@@ -52,6 +52,7 @@ interface ReportInterface
 
     /**
      * @param ReportRuleSetInterface[] $ruleSets
+     *
      * @return $this
      */
     public function setRuleSets(array $ruleSets);
@@ -73,19 +74,19 @@ interface ReportInterface
      *
      * @return ReportInterface
      */
-    public function addColumn(string $column): ReportInterface;
+    public function addColumn(string $column): self;
 
     /**
      * @param string $column
      *
      * @return ReportInterface
      */
-    public function removeColumn(string $column): ReportInterface;
+    public function removeColumn(string $column): self;
 
     /**
      * @return ReportInterface
      */
-    public function clearColumns(): ReportInterface;
+    public function clearColumns(): self;
 
     /**
      * @return string
@@ -105,7 +106,7 @@ interface ReportInterface
      *
      * @return ReportInterface
      */
-    public function setColumns(array $columns): ReportInterface;
+    public function setColumns(array $columns): self;
 
     /**
      * @param string $sortColumn
@@ -113,24 +114,24 @@ interface ReportInterface
      *
      * @return ReportInterface
      */
-    public function addSortColumn(string $sortColumn, string $order): ReportInterface;
+    public function addSortColumn(string $sortColumn, string $order): self;
 
     /**
      * @param string $sortColumn
      *
      * @return ReportInterface
      */
-    public function removeSortColumn(string $sortColumn): ReportInterface;
+    public function removeSortColumn(string $sortColumn): self;
 
     /**
      * @return ReportInterface
      */
-    public function clearSortColumns(): ReportInterface;
+    public function clearSortColumns(): self;
 
     /**
      * @param array $sortColumns
      *
      * @return ReportInterface
      */
-    public function setSortColumns(array $sortColumns): ReportInterface;
+    public function setSortColumns(array $sortColumns): self;
 }

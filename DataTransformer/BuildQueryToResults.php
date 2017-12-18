@@ -2,7 +2,6 @@
 
 namespace FL\ReportsBundle\DataTransformer;
 
-use FL\QBJSParser\Parsed\AbstractParsedRuleGroup;
 use FL\QBJSParserBundle\Service\JsonQueryParserInterface;
 use FL\ReportsBundle\Event\ResultColumnCreatedEvent;
 use FL\ReportsBundle\Event\ResultsArrayCreatedEvent;
@@ -71,7 +70,7 @@ class BuildQueryToResults
 
             $this->reportResultsStorage->addRuleGroup(
                 $parsedRuleGroup,
-                $ruleSet->getType() === ReportRuleSetInterface::TYPE_EXCLUDE
+                ReportRuleSetInterface::TYPE_EXCLUDE === $ruleSet->getType()
             );
         }
 
@@ -230,18 +229,18 @@ class BuildQueryToResults
     protected function transformValueToString($value): string
     {
         if ($value instanceof \DateTime || $value instanceof  \DateTimeImmutable) {
-            if ($value->format('H:i') === '00:00') {
+            if ('00:00' === $value->format('H:i')) {
                 $value = $value->format('d-m-Y');
             } else {
                 $value = $value->format('d-m-Y H:i');
             }
         }
 
-        if ($value === true) {
+        if (true === $value) {
             $value = $this->translator->trans('Yes');
         }
 
-        if ($value === false) {
+        if (false === $value) {
             $value = $this->translator->trans('No');
         }
 
