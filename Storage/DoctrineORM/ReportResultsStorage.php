@@ -134,7 +134,10 @@ class ReportResultsStorage implements ReportResultsStorageInterface
             ++$n;
         }
 
-        $sql = $mainSql.' WHERE '.implode(' AND ', $where);
+        $sql = $mainSql
+            .(strpos($mainSql, 'WHERE') !== false ? ' AND ' : ' WHERE ')
+            .implode(' AND ', $where)
+        ;
         if ($limit || $offset) {
             $sql .= $offset ? sprintf(' LIMIT %u, %u', $offset, $limit) : sprintf(' LIMIT %u', $limit);
         }
