@@ -2,11 +2,11 @@
 
 namespace FL\ReportsBundle\Storage\DoctrineORM;
 
+use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\ORM\Query;
-use Doctrine\ORM\QueryBuilder;
-use Doctrine\ORM\Tools\Pagination\Paginator;
+use Doctrine\ORM\Query\ResultSetMapping;
 use FL\QBJSParser\Parsed\AbstractParsedRuleGroup;
 use FL\QBJSParser\Parser\Doctrine\SelectPartialParser;
 use FL\ReportsBundle\Storage\ReportResultsStorageInterface;
@@ -39,7 +39,6 @@ class ReportResultsStorage implements ReportResultsStorageInterface
     /**
      * @param AbstractParsedRuleGroup $ruleGroup
      * @param bool                    $exclude
-     *
      * @return $this
      */
     public function addRuleGroup(AbstractParsedRuleGroup $ruleGroup, bool $exclude = false)
@@ -67,7 +66,6 @@ class ReportResultsStorage implements ReportResultsStorageInterface
     /**
      * @param AbstractParsedRuleGroup $ruleGroup
      * @param int                     $n
-     *
      * @return string DQL
      */
     private function getSubDql(AbstractParsedRuleGroup $ruleGroup, int $n = 0): string
@@ -89,40 +87,14 @@ class ReportResultsStorage implements ReportResultsStorageInterface
     }
 
     /**
-     * @param QueryBuilder            $queryBuilder
-     * @param AbstractParsedRuleGroup $ruleGroup
+     * we use wrapper queries to get mysql to only execute sub-queries once and store results in temp tables
+     * @see https://www.xaprb.com/blog/2006/04/30/how-to-optimize-subqueries-and-joins-in-mysql/#how-to-force-the-inner-query-to-execute-first
      *
-     * @return $this
+     * @return AbstractQuery
      */
-    private function addParameters(QueryBuilder $queryBuilder, AbstractParsedRuleGroup $ruleGroup)
+    private function getQuery(?int $limit = null, ?int $offset = null): AbstractQuery
     {
-        // append numerically indexed parameters
-        $queryBuilder->setParameters(
-            array_merge(
-                array_map(function (Query\Parameter $parameter) {
-                    return $parameter->getValue();
-                }, $queryBuilder->getParameters()->toArray()),
-                $ruleGroup->getParameters()
-            )
-        );
-
-        return $this;
-    }
-
-    private function reindexParameters(string $dql)
-    {
-        $n = -1;
-
-        return preg_replace_callback('/\?\d+/', function (array $matches) use (&$n) {
-            ++$n;
-
-            return '?'.$n;
-        }, $dql);
-    }
-
-    private function getQuery(): Query
-    {
-        if (0 === count($this->includeRuleGroups)) {
+        if (count($this->includeRuleGroups) == 0) {
             throw new \RuntimeException('Query requires at least one include rule group');
         }
 
@@ -132,30 +104,43 @@ class ReportResultsStorage implements ReportResultsStorageInterface
             ->from($this->includeRuleGroups[0]->getClassName(), 'o')
         ;
 
-        $n = 0;
+        $query = $queryBuilder->getQuery();
+        $mainSql = $query->getSQL();
 
+        $n = 1;
+        $where = [];
+        $parameters = [];
         foreach ($this->includeRuleGroups as $ruleGroup) {
-            $queryBuilder->andWhere(
-                $queryBuilder->expr()->in('o.id', $this->getSubDql($ruleGroup, $n))
-            );
-
-            $this->addParameters($queryBuilder, $ruleGroup);
-
-            ++$n;
+            $sql = $this->entityManager
+                ->createQuery($this->getSubDql($ruleGroup, $n))
+                ->getSQL()
+            ;
+            $where[] = 'c0_.id IN ( select * from ('.$sql.') sub'.$n.' )';
+            $parameters = array_merge($parameters, $ruleGroup->getParameters());
+            $n++;
         }
 
         foreach ($this->excludeRuleGroups as $ruleGroup) {
-            $queryBuilder->andWhere(
-                $queryBuilder->expr()->notIn('o.id', $this->getSubDql($ruleGroup, $n))
-            );
-
-            $this->addParameters($queryBuilder, $ruleGroup);
-
-            ++$n;
+            $sql = $this->entityManager
+                ->createQuery($this->getSubDql($ruleGroup, $n))
+                ->getSQL()
+            ;
+            $where[] = 'c0_.id NOT IN ( select * from ('.$sql.') sub'.$n.' )';
+            $parameters = array_merge($parameters, $ruleGroup->getParameters());
+            $n++;
         }
 
-        $query = $queryBuilder->getQuery();
-        $query->setDQL($this->reindexParameters($queryBuilder->getDQL()));
+        $sql = $mainSql. ' WHERE '.implode(' AND ', $where);
+        if ($limit || $offset) {
+            $sql .= $offset ? sprintf(' LIMIT %u, %u', $offset, $limit) : sprintf(' LIMIT %u', $limit);
+        }
+        $rsm = (new ResultSetMapping())
+            ->addScalarResult('id_0', 'id', 'integer')
+        ;
+        $query = $this->entityManager
+            ->createNativeQuery($sql, $rsm)
+            ->setParameters($parameters)
+        ;
 
         return $query;
     }
@@ -165,22 +150,18 @@ class ReportResultsStorage implements ReportResultsStorageInterface
      */
     public function getIds(int $currentPage = null, int $resultsPerPage = null): array
     {
-        if (0 === $currentPage || 0 === $resultsPerPage) {
+        if ($currentPage === 0 || $resultsPerPage === 0) {
             return [];
         }
 
-        $query = $this->getQuery();
-
-        if (null !== $currentPage && null !== $resultsPerPage) {
-            $query
-                ->setMaxResults($resultsPerPage)
-                ->setFirstResult(($currentPage - 1) * $resultsPerPage)
-            ;
-        }
+        $query = $currentPage !== null && $resultsPerPage !== null
+            ? $this->getQuery($resultsPerPage, ($currentPage - 1) * $resultsPerPage)
+            : $this->getQuery()
+        ;
 
         return array_map(function (array $row) {
-            return $row['o_id'];
-        }, $query->getResult(Query::HYDRATE_SCALAR));
+            return $row['id'];
+        }, $query->getScalarResult());
     }
 
     /**
@@ -190,7 +171,7 @@ class ReportResultsStorage implements ReportResultsStorageInterface
     {
         $resultIds = $this->getIds($currentPage, $resultsPerPage);
 
-        if (0 === count($resultIds)) {
+        if (count($resultIds) === 0) {
             return []; // WHERE IN [] would have returned all results
         }
 
@@ -240,9 +221,7 @@ class ReportResultsStorage implements ReportResultsStorageInterface
      */
     public function countResults(): int
     {
-        $paginator = new Paginator($this->getQuery(), false);
-
-        return $paginator->count();
+        return count($this->getQuery()->getResult(Query::HYDRATE_SCALAR));
     }
 
     /**
