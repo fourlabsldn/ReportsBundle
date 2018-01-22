@@ -1,9 +1,9 @@
 {
   "name": "fourlabs/reports-bundle",
-  "version": "1.0",
+  "type": "symfony-bundle",
   "description": "This bundle helps you report on your Symfony entities, by using on fourlabs/qbjs-parser-bundle and querybuilder.js.org.",
   "license": "MIT",
-  "homepage": "https://github.com/fourlabsldn/QBJSParserBundle",
+  "homepage": "https://github.com/fourlabsldn/ReportsBundle",
   "keywords": [
     "PHP","QBJSParser", "QBJSParserBundle", "QBJS",
     "Parser", "Symfony", "Doctrine", "ORM",
@@ -14,15 +14,18 @@
   "authors": [
     {
       "name": "Four Labs",
-      "email": "luis@fourlabs.co.uk",
-      "homepage": "https://fourlabs.co.uk/"
+      "homepage": "https://fourlabs.co.uk"
+    },
+    {
+      "name": "Other contributors",
+      "homepage": "https://github.com/fourlabsldn/ReportsBundle/graphs/contributors"
     }
   ],
   "minimum-stability": "dev",
   "require": {
-    "php": "^7.0",
-    "fourlabs/qbjs-parser": "dev-master",
-    "fourlabs/qbjs-parser-bundle": "dev-master",
+    "php": ">=7.0",
+    "fourlabs/qbjs-parser": "*",
+    "fourlabs/qbjs-parser-bundle": "*",
     "symfony/config": "~2.8|~3.0|~3.1",
     "symfony/dependency-injection": "~2.8|~3.0|~3.1",
     "symfony/http-kernel": "~2.8|~3.0|~3.1",
@@ -32,6 +35,13 @@
     "symfony/routing": "~2.8|~3.0|~3.1",
     "symfony/translation": "~2.8|~3.0|~3.1",
     "symfony/serializer": "~2.8|~3.0|~3.1"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "*",
+    "doctrine/orm": ">=2.2"
+  },
+  "suggest": {
+    "doctrine/orm": ">=2.2"
   },
   "autoload": {
     "psr-4": {
