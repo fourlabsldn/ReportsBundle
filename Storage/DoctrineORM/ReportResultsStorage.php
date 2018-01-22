@@ -39,6 +39,7 @@ class ReportResultsStorage implements ReportResultsStorageInterface
     /**
      * @param AbstractParsedRuleGroup $ruleGroup
      * @param bool                    $exclude
+     *
      * @return $this
      */
     public function addRuleGroup(AbstractParsedRuleGroup $ruleGroup, bool $exclude = false)
@@ -66,6 +67,7 @@ class ReportResultsStorage implements ReportResultsStorageInterface
     /**
      * @param AbstractParsedRuleGroup $ruleGroup
      * @param int                     $n
+     *
      * @return string DQL
      */
     private function getSubDql(AbstractParsedRuleGroup $ruleGroup, int $n = 0): string
@@ -87,14 +89,15 @@ class ReportResultsStorage implements ReportResultsStorageInterface
     }
 
     /**
-     * we use wrapper queries to get mysql to only execute sub-queries once and store results in temp tables
+     * we use wrapper queries to get mysql to only execute sub-queries once and store results in temp tables.
+     *
      * @see https://www.xaprb.com/blog/2006/04/30/how-to-optimize-subqueries-and-joins-in-mysql/#how-to-force-the-inner-query-to-execute-first
      *
      * @return AbstractQuery
      */
     private function getQuery(?int $limit = null, ?int $offset = null): AbstractQuery
     {
-        if (count($this->includeRuleGroups) == 0) {
+        if (0 === count($this->includeRuleGroups)) {
             throw new \RuntimeException('Query requires at least one include rule group');
         }
 
@@ -117,7 +120,7 @@ class ReportResultsStorage implements ReportResultsStorageInterface
             ;
             $where[] = 'c0_.id IN ( select * from ('.$sql.') sub'.$n.' )';
             $parameters = array_merge($parameters, $ruleGroup->getParameters());
-            $n++;
+            ++$n;
         }
 
         foreach ($this->excludeRuleGroups as $ruleGroup) {
@@ -127,10 +130,10 @@ class ReportResultsStorage implements ReportResultsStorageInterface
             ;
             $where[] = 'c0_.id NOT IN ( select * from ('.$sql.') sub'.$n.' )';
             $parameters = array_merge($parameters, $ruleGroup->getParameters());
-            $n++;
+            ++$n;
         }
 
-        $sql = $mainSql. ' WHERE '.implode(' AND ', $where);
+        $sql = $mainSql.' WHERE '.implode(' AND ', $where);
         if ($limit || $offset) {
             $sql .= $offset ? sprintf(' LIMIT %u, %u', $offset, $limit) : sprintf(' LIMIT %u', $limit);
         }
@@ -150,11 +153,11 @@ class ReportResultsStorage implements ReportResultsStorageInterface
      */
     public function getIds(int $currentPage = null, int $resultsPerPage = null): array
     {
-        if ($currentPage === 0 || $resultsPerPage === 0) {
+        if (0 === $currentPage || 0 === $resultsPerPage) {
             return [];
         }
 
-        $query = $currentPage !== null && $resultsPerPage !== null
+        $query = null !== $currentPage && null !== $resultsPerPage
             ? $this->getQuery($resultsPerPage, ($currentPage - 1) * $resultsPerPage)
             : $this->getQuery()
         ;
@@ -171,7 +174,7 @@ class ReportResultsStorage implements ReportResultsStorageInterface
     {
         $resultIds = $this->getIds($currentPage, $resultsPerPage);
 
-        if (count($resultIds) === 0) {
+        if (0 === count($resultIds)) {
             return []; // WHERE IN [] would have returned all results
         }
 
