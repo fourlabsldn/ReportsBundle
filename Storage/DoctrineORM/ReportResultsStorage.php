@@ -109,6 +109,7 @@ class ReportResultsStorage implements ReportResultsStorageInterface
 
         $query = $queryBuilder->getQuery();
         $mainSql = $query->getSQL();
+        $mainEntityAlias = substr($mainSql, 7, 3);
 
         $n = 1;
         $where = [];
@@ -118,7 +119,7 @@ class ReportResultsStorage implements ReportResultsStorageInterface
                 ->createQuery($this->getSubDql($ruleGroup, $n))
                 ->getSQL()
             ;
-            $where[] = 'c0_.id IN ( select * from ('.$sql.') sub'.$n.' )';
+            $where[] = $mainEntityAlias.'.id IN ( select * from ('.$sql.') sub'.$n.' )';
             $parameters = array_merge($parameters, $ruleGroup->getParameters());
             ++$n;
         }
@@ -128,7 +129,7 @@ class ReportResultsStorage implements ReportResultsStorageInterface
                 ->createQuery($this->getSubDql($ruleGroup, $n))
                 ->getSQL()
             ;
-            $where[] = 'c0_.id NOT IN ( select * from ('.$sql.') sub'.$n.' )';
+            $where[] = $mainEntityAlias.'.id NOT IN ( select * from ('.$sql.') sub'.$n.' )';
             $parameters = array_merge($parameters, $ruleGroup->getParameters());
             ++$n;
         }
