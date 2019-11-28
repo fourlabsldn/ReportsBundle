@@ -211,7 +211,7 @@ class Report implements ReportInterface
      */
     public function addSortColumn(string $sortColumn, string $order): ReportInterface
     {
-        if ($order !== 'ASC' && $order !== 'DESC') {
+        if ('ASC' !== $order && 'DESC' !== $order) {
             throw new \InvalidArgumentException();
         }
         $this->sortColumns[$sortColumn] = $order;

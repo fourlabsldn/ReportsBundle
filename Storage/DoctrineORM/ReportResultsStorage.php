@@ -31,9 +31,9 @@ class ReportResultsStorage implements ReportResultsStorageInterface
     public function resultsFromParsedRuleGroup(AbstractParsedRuleGroup $parsedRuleGroup, int $currentPage = null, int $resultsPerPage = null): array
     {
         if (
-            $currentPage !== null &&
-            $resultsPerPage !== null &&
-            ($currentPage === 0 || $resultsPerPage === 0)
+            null !== $currentPage &&
+            null !== $resultsPerPage &&
+            (0 === $currentPage || 0 === $resultsPerPage)
         ) {
             return [];
         }
@@ -54,8 +54,8 @@ class ReportResultsStorage implements ReportResultsStorageInterface
         $query->setParameters($parsedRuleGroup->getParameters());
 
         if (
-            $currentPage !== null &&
-            $resultsPerPage !== null
+            null !== $currentPage &&
+            null !== $resultsPerPage
         ) {
             $query->setMaxResults($resultsPerPage)
                 ->setFirstResult(($currentPage - 1) * $resultsPerPage);
@@ -66,7 +66,7 @@ class ReportResultsStorage implements ReportResultsStorageInterface
         foreach ($query->getResult(Query::HYDRATE_SCALAR) as $result) {
             $resultIds[] = $result['root_entity_id'];
         }
-        if (count($resultIds) === 0) {
+        if (0 === count($resultIds)) {
             return []; // WHERE IN [] would have returned all results
         }
 

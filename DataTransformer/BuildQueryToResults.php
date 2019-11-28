@@ -233,18 +233,18 @@ class BuildQueryToResults
     protected function transformValueToString($value): string
     {
         if ($value instanceof \DateTime || $value instanceof  \DateTimeImmutable) {
-            if ($value->format('H:i') === '00:00') {
+            if ('00:00' === $value->format('H:i')) {
                 $value = $value->format('d-m-Y');
             } else {
                 $value = $value->format('d-m-Y H:i');
             }
         }
 
-        if ($value === true) {
+        if (true === $value) {
             $value = $this->translator->trans('Yes');
         }
 
-        if ($value === false) {
+        if (false === $value) {
             $value = $this->translator->trans('No');
         }
 
